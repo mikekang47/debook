@@ -1,4 +1,4 @@
-package com.sihoo.me.debookprivate;
+package com.sihoo.me.debook;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
