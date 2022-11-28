@@ -34,4 +34,12 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
                 .sorted(Comparator.comparing(User::getNickName))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<User> findUsers() {
+        return jpaQueryFactory.selectFrom(user)
+                .where(user.isDeleted.eq(false))
+                .stream()
+                .collect(Collectors.toList());
+    }
 }

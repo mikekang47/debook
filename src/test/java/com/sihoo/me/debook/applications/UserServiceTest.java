@@ -161,4 +161,55 @@ class UserServiceTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("getUsers 메서드는")
+    class Describe_getUsers {
+        @Nested
+        @DisplayName("유저가 존재하면")
+        class Describe_exists_user {
+            @BeforeEach
+            void setUp() {
+                User user1 = User.builder()
+                        .nickName("exists_1")
+                        .isDeleted(false)
+                        .build();
+
+                User user2 = User.builder()
+                        .nickName("exists_2")
+                        .isDeleted(false)
+                        .build();
+
+                List<User> users = List.of(user1, user2);
+
+                given(userRepository.findUsers())
+                        .willReturn(users);
+            }
+
+            @Test
+            @DisplayName("유저를 모두 반환한다.")
+            void It_returns_list_of_users() {
+                List<User> users = userService.getUsers();
+
+                assertThat(users).isNotEmpty();
+            }
+        }
+
+        @Nested
+        @DisplayName("유저가 존재하지 않는다면")
+        class Describe_not_exists_contains_nickname_user {
+            @BeforeEach
+            void setUp() {
+                given(userRepository.findUsers()).willReturn(List.of());
+            }
+
+            @Test
+            @DisplayName("빈 리스트를 반환한다.")
+            void It_returns_empty_list() {
+                List<User> users = userService.getUsers();
+
+                assertThat(users).isEmpty();
+            }
+        }
+    }
 }

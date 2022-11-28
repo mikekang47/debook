@@ -35,4 +35,8 @@ public class UserService {
     public List<User> getUserByNickName(String nickName) {
         return userRepository.findUserByNickName(nickName);
     }
+
+    public List<User> getUsers() {
+        return userRepository.findUsers();
+    }
 }

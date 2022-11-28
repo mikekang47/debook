@@ -9,4 +9,6 @@ public interface UserCustomRepository {
     Optional<User> findUserById(Long id);
 
     List<User> findUserByNickName(String nickName);
+
+    List<User> findUsers();
 }

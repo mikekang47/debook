@@ -33,4 +33,9 @@ public class UserController {
     public List<User> detailByNickName(@PathVariable String nickName) {
         return userService.getUserByNickName(nickName);
     }
+
+    @GetMapping
+    public List<User> list() {
+        return userService.getUsers();
+    }
 }
