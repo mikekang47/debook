@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +26,8 @@ class UserServiceTest {
     private static final Long NEW_ID = 5L;
     private static final Long EXISTS_ID = 2L;
     private static final Long NOT_EXISTS_ID = 200L;
+    private static final String EXISTS_NICKNAME = "exists";
+    private static final String NOT_EXISTS_NICKNAME = "not_exists";
 
     @BeforeEach
     void setUp() {
@@ -110,4 +113,52 @@ class UserServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("getUserByNickName 메서드는")
+    class Describe_getUserBtyNickname {
+        @Nested
+        @DisplayName("주어진 닉네임을 포함한 유저가 존재하면")
+        class Describe_exists_contains_nickname_user {
+            @BeforeEach
+            void setUp() {
+                User user1 = User.builder()
+                        .nickName("exists_1")
+                        .build();
+
+                User user2 = User.builder()
+                        .nickName("exists_2")
+                        .build();
+
+                List<User> users = List.of(user1, user2);
+
+                given(userRepository.findUserByNickName(EXISTS_NICKNAME))
+                        .willReturn(users);
+            }
+
+            @Test
+            @DisplayName("포함한 유저를 모두 반환한다.")
+            void It_returns_list_of_users() {
+                List<User> users = userService.getUserByNickName(EXISTS_NICKNAME);
+
+                assertThat(users).isNotEmpty();
+            }
+        }
+
+        @Nested
+        @DisplayName("주어진 닉네임을 포함한 유저가 존재하지 않는다면")
+        class Describe_not_exists_contains_nickname_user {
+            @BeforeEach
+            void setUp() {
+                given(userRepository.findUserByNickName(NOT_EXISTS_NICKNAME)).willReturn(List.of());
+            }
+
+            @Test
+            @DisplayName("빈 리스트를 반환한다.")
+            void It_returns_empty_list() {
+                List<User> users = userService.getUserByNickName(NOT_EXISTS_NICKNAME);
+
+                assertThat(users).isEmpty();
+            }
+        }
+    }
 }

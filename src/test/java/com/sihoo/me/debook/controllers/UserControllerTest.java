@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -28,6 +30,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerTest {
     private static final Long EXISTS_ID = 1L;
     private static final Long NOT_EXISTS_ID = 200L;
+    private static final String EXISTS_NICK_NAME = "exists";
+    private static final String NOT_EXISTS_NICK_NAME = "notexists";
+
     private static User user;
 
     @Autowired
@@ -89,7 +94,7 @@ class UserControllerTest {
     }
 
     @Nested
-    @DisplayName("detail 메서드는")
+    @DisplayName("detailById 메서드는")
     class Describe_detail {
 
         @Nested
@@ -142,4 +147,59 @@ class UserControllerTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("detailByName 메서드는")
+    class Describe_detailByName {
+        @Nested
+        @DisplayName("요청 닉네임을 포함하는 유저가 있을 때")
+        class Context_when_exists_contains_user_nick_name {
+            @BeforeEach
+            void setUp() {
+                User user1 = User.builder()
+                        .nickName("exists_1")
+                        .build();
+
+                User user2 = User.builder()
+                        .nickName("exists_2")
+                        .build();
+
+                List<User> users = List.of(user1, user2);
+
+                given(userService.getUserByNickName(EXISTS_NICK_NAME))
+                        .willReturn(users);
+            }
+
+            @Test
+            @DisplayName("200과 포함된 유저 전체를 반환한다.")
+            void It_responds_200_and_list_of_users() throws Exception {
+                mockMvc.perform(get("/users/search/" + EXISTS_NICK_NAME)
+                                .accept(MediaType.APPLICATION_JSON)
+                        )
+                        .andExpect(content().string(containsString("exists_1")))
+                        .andExpect(content().string(containsString("exists_2")))
+                        .andExpect(status().isOk());
+
+            }
+        }
+
+        @Nested
+        @DisplayName("요청 닉네임을 포함하는 유저가 없을 때")
+        class Context_when_not_exists_contains_user_nick_name {
+            @BeforeEach
+            void setUp() {
+                given(userService.getUserByNickName(NOT_EXISTS_NICK_NAME)).willReturn(List.of());
+            }
+
+            @Test
+            @DisplayName("200 과 빈 리스트를 반환한다.")
+            void It_responds_200_and_empty_list() throws Exception {
+                mockMvc.perform(get("/users/search/" + NOT_EXISTS_NICK_NAME)
+                                .accept(MediaType.APPLICATION_JSON)
+                        )
+                        .andExpect(status().isOk());
+            }
+        }
+    }
+
 }
