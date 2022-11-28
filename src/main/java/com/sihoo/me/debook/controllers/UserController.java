@@ -23,4 +23,9 @@ public class UserController {
         return userService.createUser(userRequestData);
     }
 
+    @GetMapping("/{id}")
+    public User detailById(@PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
 }
