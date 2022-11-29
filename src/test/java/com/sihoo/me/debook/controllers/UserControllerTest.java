@@ -321,42 +321,84 @@ class UserControllerTest {
     @DisplayName("delete 메서드는")
     class Describe_delete {
         @Nested
-        @DisplayName("id가 존재할 때")
+        @DisplayName("id가 존재하며")
         class Context_when_exists_id {
-            @BeforeEach
-            void setUp() {
-                User user = User.builder()
-                        .isDeleted(true)
-                        .build();
+            @Nested
+            @DisplayName("현재 사용자와 같을 때")
+            class Context_when_same_current_user {
+                @BeforeEach
+                void setUp() {
+                    User user = User.builder()
+                            .isDeleted(true)
+                            .build();
 
-                given(userService.deleteUser(EXISTS_USER_ID)).willReturn(user);
-            }
+                    given(authenticationService.getRoles(EXISTS_USER_ID))
+                            .willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
 
-            @Test
-            @DisplayName("유저 삭제 상태를 true로 변경 후 아무것도 반환하지 않는다.")
-            void It_change_user_state_to_true() throws Exception {
-                mockMvc.perform(delete("/users/" + EXISTS_USER_ID))
-                        .andExpect(status().isNoContent());
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+
+                    given(userService.deleteUser(EXISTS_USER_ID, SAME_CURRENT_USER_ID)).willReturn(user);
+                }
+
+                @Test
+                @DisplayName("204를 응답한다.")
+                void It_responds_204() throws Exception {
+                    mockMvc.perform(delete("/users/" + EXISTS_USER_ID)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isNoContent());
+                }
             }
         }
 
         @Nested
+        @DisplayName("현재 사용자와 다를 때")
+        class Context_when_same_current_user {
+            @BeforeEach
+            void setUp() {
+                given(authenticationService.getRoles(DIFF_CURRENT_USER_ID))
+                        .willReturn(List.of(new Role(1L, DIFF_CURRENT_USER_ID, RoleType.USER)));
+
+                given(authenticationService.parseToken(DIFFERENT_USER_TOKEN)).willReturn(DIFF_CURRENT_USER_ID);
+
+                given(userService.deleteUser(EXISTS_USER_ID, DIFF_CURRENT_USER_ID)).willThrow(
+                        new CustomException("[ERROR] Can not delete", HttpStatus.UNAUTHORIZED)
+                );
+            }
+
+            @Test
+            @DisplayName("401을 응답한다.")
+            void It_responds_401() throws Exception {
+                mockMvc.perform(delete("/users/" + EXISTS_USER_ID)
+                                .header("Authorization", "Bearer " + DIFFERENT_USER_TOKEN)
+                        )
+                        .andExpect(status().isUnauthorized());
+            }
+        }
+
+
+    @Nested
         @DisplayName("id가 존재하지 않을 때")
         class Context_when_not_exists_id {
             @BeforeEach
             void setUp() {
-                given(userService.deleteUser(NOT_EXISTS_USER_ID))
-                        .willThrow(new CustomException("User not found(UserId: " + NOT_EXISTS_USER_ID + ")",
-                                HttpStatus.NOT_FOUND));
+                given(authenticationService.getRoles(EXISTS_USER_ID))
+                        .willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
+
+                given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+
+                given(userService.deleteUser(NOT_EXISTS_USER_ID, EXISTS_USER_ID))
+                        .willThrow(new CustomException("[ERROR] Can not delete", HttpStatus.UNAUTHORIZED));
             }
 
             @Test
-            @DisplayName("404를 응답한다.")
+            @DisplayName("401를 응답한다.")
             void It_responds_404() throws Exception {
-                mockMvc.perform(delete("/users/" + NOT_EXISTS_USER_ID))
-                        .andExpect(status().isNotFound());
+                mockMvc.perform(delete("/users/" + NOT_EXISTS_USER_ID)
+                                .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                        )
+                        .andExpect(status().isUnauthorized());
             }
         }
     }
-
 }

@@ -67,7 +67,12 @@ public class UserService {
                 .orElseThrow(() -> new CustomException("[ERROR] User not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
     }
 
-    public User deleteUser(Long id) {
+    public User deleteUser(Long id, Long userId) {
+        if (!Objects.equals(id, userId)) {
+            throw new CustomException("[ERROR] Can not delete other user(UserId: " + id +
+                    ", Current User Id: " + userId + ")", HttpStatus.UNAUTHORIZED);
+        }
+
         User user = findUser(id);
         user.changeStatus(true);
 
