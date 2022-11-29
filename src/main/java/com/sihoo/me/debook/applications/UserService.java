@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 
 @Service
@@ -49,7 +50,12 @@ public class UserService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public User updateUser(Long id, UserUpdateRequest userUpdateRequest) {
+    public User updateUser(Long id, UserUpdateRequest userUpdateRequest, Long userId) {
+        if (!Objects.equals(id, userId)) {
+            throw new CustomException("[ERROR] Can not modify others information(UserId: " + id +
+                    ", Current User Id: " + userId + ")", HttpStatus.UNAUTHORIZED);
+        }
+
         User user = findUser(id);
         user.changeWith(mapper.map(userUpdateRequest, User.class));
 

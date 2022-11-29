@@ -4,6 +4,7 @@ import com.sihoo.me.debook.applications.UserService;
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.UserRequestData;
 import com.sihoo.me.debook.dto.UserUpdateRequest;
+import com.sihoo.me.debook.security.UserAuthentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +28,11 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated() and hasAuthority('ADMIN')")
     public User detailById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
 
     @GetMapping("/search/{nickName}")
-    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
     public List<User> detailByNickName(@PathVariable String nickName) {
         return userService.getUserByNickName(nickName);
     }
@@ -44,8 +43,12 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
-        return userService.updateUser(id, userUpdateRequest);
+    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
+    public User update(@PathVariable Long id,
+                       @RequestBody @Valid UserUpdateRequest userUpdateRequest,
+                       UserAuthentication userAuthentication) {
+        Long userId = userAuthentication.getUserId();
+        return userService.updateUser(id, userUpdateRequest, userId);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -36,6 +36,8 @@ class UserServiceTest {
 
     private static final Long NEW_ID = 5L;
     private static final Long EXISTS_ID = 2L;
+    private static final Long SAME_CURRENT_USER_ID = 2L;
+    private static final Long DIFF_CURRENT_USER_ID = 8L;
     private static final Long NOT_EXISTS_ID = 200L;
     private static final String EXISTS_NICKNAME = "exists";
     private static final String NOT_EXISTS_NICKNAME = "not_exists";
@@ -257,7 +259,7 @@ class UserServiceTest {
                             .password("password")
                             .build();
 
-                    User user = userService.updateUser(EXISTS_ID, userUpdateRequest);
+                    User user = userService.updateUser(EXISTS_ID, userUpdateRequest, SAME_CURRENT_USER_ID);
 
                     assertThat(user.getNickName()).isEqualTo("nickname");
                     assertThat(user.getGithubId()).isEqualTo("githubId");
@@ -276,8 +278,20 @@ class UserServiceTest {
             @Test
             @DisplayName("에러를 발생시킨다.")
             void It_returns_empty_list() {
-                assertThatThrownBy(() -> userService.updateUser(NOT_EXISTS_ID, userUpdateRequest))
+                assertThatThrownBy(() -> userService.updateUser(NOT_EXISTS_ID, userUpdateRequest, NOT_EXISTS_ID))
                         .hasMessageContaining("[ERROR] User not found")
+                        .isInstanceOf(CustomException.class);
+            }
+        }
+
+        @Nested
+        @DisplayName("수정하려는 사용자와 현재 사용자가 다르다면")
+        class Describe_different_user {
+            @Test
+            @DisplayName("에러를 발생시킨다.")
+            void It_returns_empty_list() {
+                assertThatThrownBy(() -> userService.updateUser(NOT_EXISTS_ID, userUpdateRequest, DIFF_CURRENT_USER_ID))
+                        .hasMessageContaining("[ERROR] Can not modify others information")
                         .isInstanceOf(CustomException.class);
             }
         }
