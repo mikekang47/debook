@@ -4,7 +4,9 @@ import com.sihoo.me.debook.applications.UserService;
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.UserRequestData;
 import com.sihoo.me.debook.dto.UserUpdateRequest;
+import com.sihoo.me.debook.security.UserAuthentication;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -41,13 +43,19 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
-        return userService.updateUser(id, userUpdateRequest);
+    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
+    public User update(@PathVariable Long id,
+                       @RequestBody @Valid UserUpdateRequest userUpdateRequest,
+                       UserAuthentication userAuthentication) {
+        Long userId = userAuthentication.getUserId();
+        return userService.updateUser(id, userUpdateRequest, userId);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        userService.deleteUser(id);
+    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
+    public void delete(@PathVariable Long id, UserAuthentication userAuthentication) {
+        final Long userId = userAuthentication.getUserId();
+        userService.deleteUser(id, userId);
     }
 }

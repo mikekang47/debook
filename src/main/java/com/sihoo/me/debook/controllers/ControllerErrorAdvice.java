@@ -15,13 +15,7 @@ public class ControllerErrorAdvice {
     public ResponseEntity<ErrorResponse> handleRestResponseException(CustomException e) {
         return new ResponseEntity<>(new ErrorResponse(e.getMessage()), e.getStatus());
     }
-
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleException(Exception e) {
-        return new ErrorResponse(e.getMessage());
-    }
-
+    
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationException(MethodArgumentNotValidException e) {

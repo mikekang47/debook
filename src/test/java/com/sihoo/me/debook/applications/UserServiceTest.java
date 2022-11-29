@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,14 +23,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
+@SpringBootTest
 class UserServiceTest {
 
     private final UserRepository userRepository = mock(UserRepository.class);
     private UserService userService;
+
+    @MockBean
+    private RoleService roleService;
+
     private static UserUpdateRequest userUpdateRequest;
 
     private static final Long NEW_ID = 5L;
     private static final Long EXISTS_ID = 2L;
+    private static final Long SAME_CURRENT_USER_ID = 2L;
+    private static final Long DIFF_CURRENT_USER_ID = 8L;
     private static final Long NOT_EXISTS_ID = 200L;
     private static final String EXISTS_NICKNAME = "exists";
     private static final String NOT_EXISTS_NICKNAME = "not_exists";
@@ -36,7 +45,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         Mapper mapper = DozerBeanMapperBuilder.buildDefault();
-        userService = new UserService(userRepository, mapper);
+        userService = new UserService(roleService, userRepository, mapper);
     }
 
     @Nested
@@ -250,7 +259,7 @@ class UserServiceTest {
                             .password("password")
                             .build();
 
-                    User user = userService.updateUser(EXISTS_ID, userUpdateRequest);
+                    User user = userService.updateUser(EXISTS_ID, userUpdateRequest, SAME_CURRENT_USER_ID);
 
                     assertThat(user.getNickName()).isEqualTo("nickname");
                     assertThat(user.getGithubId()).isEqualTo("githubId");
@@ -269,8 +278,20 @@ class UserServiceTest {
             @Test
             @DisplayName("에러를 발생시킨다.")
             void It_returns_empty_list() {
-                assertThatThrownBy(() -> userService.updateUser(NOT_EXISTS_ID, userUpdateRequest))
+                assertThatThrownBy(() -> userService.updateUser(NOT_EXISTS_ID, userUpdateRequest, NOT_EXISTS_ID))
                         .hasMessageContaining("[ERROR] User not found")
+                        .isInstanceOf(CustomException.class);
+            }
+        }
+
+        @Nested
+        @DisplayName("수정하려는 사용자와 현재 사용자가 다르다면")
+        class Describe_different_user {
+            @Test
+            @DisplayName("에러를 발생시킨다.")
+            void It_returns_empty_list() {
+                assertThatThrownBy(() -> userService.updateUser(NOT_EXISTS_ID, userUpdateRequest, DIFF_CURRENT_USER_ID))
+                        .hasMessageContaining("[ERROR] Can not modify others information")
                         .isInstanceOf(CustomException.class);
             }
         }
@@ -282,39 +303,75 @@ class UserServiceTest {
         @Nested
         @DisplayName("유저가 존재할 때")
         class Context_when_exists_user {
-            @BeforeEach
-            void setUp() {
-                User user = User.builder()
-                        .id(EXISTS_ID)
-                        .build();
 
-                given(userRepository.findUserById(EXISTS_ID)).willReturn(Optional.of(user));
+            @Nested
+            @DisplayName("현재 사용자와 같을 때")
+            class Context_when_same_current_user {
+                @BeforeEach
+                void setUp() {
+                    User user = User.builder()
+                            .id(EXISTS_ID)
+                            .build();
+
+                    given(userRepository.findUserById(EXISTS_ID)).willReturn(Optional.of(user));
+                }
+
+                @Test
+                @DisplayName("user의 isDeleted상태를 변경하고, user를 반홚다.")
+                void It_returns_user() {
+                    User user = userService.deleteUser(EXISTS_ID, SAME_CURRENT_USER_ID);
+
+                    assertThat(user.isDeleted()).isTrue();
+                }
             }
 
-            @Test
-            @DisplayName("user의 isDeleted상태를 변경하고, user를 반홚다.")
-            void It_returns_user() {
-                User user = userService.deleteUser(EXISTS_ID);
+            @Nested
+            @DisplayName("현재 사용자와 다를 때")
+            class Context_when_different_current_user {
+                @Test
+                @DisplayName("에러를 반환한다.")
+                void It_returns_user() {
+                    assertThatThrownBy(() -> userService.deleteUser(EXISTS_ID, DIFF_CURRENT_USER_ID))
+                            .hasMessageContaining("[ERROR] Can not delete")
+                            .isInstanceOf(CustomException.class);
 
-                assertThat(user.isDeleted()).isTrue();
+                }
             }
         }
 
         @Nested
         @DisplayName("userId가 존재하지 않을 때")
         class Context_when_gives_not_exists_id {
-            @BeforeEach
-            void setUp() {
-                given(userRepository.findUserById(NOT_EXISTS_ID))
-                        .willReturn(Optional.empty());
+
+            @Nested
+            @DisplayName("현재 사용자와 같을 때")
+            class Context_when_same_current_user {
+                @BeforeEach
+                void setUp() {
+                    given(userRepository.findUserById(NOT_EXISTS_ID))
+                            .willReturn(Optional.empty());
+                }
+
+                @Test
+                @DisplayName("에러를 반환한다.")
+                void It_throws_user_not_found_exception() {
+                    assertThatThrownBy(() -> userService.deleteUser(NOT_EXISTS_ID, NOT_EXISTS_ID))
+                            .hasMessageContaining("[ERROR] User not found(Id: ")
+                            .isInstanceOf(CustomException.class);
+                }
             }
 
-            @Test
-            @DisplayName("에러를 반환한다.")
-            void It_throws_user_not_found_exception() {
-                assertThatThrownBy(() -> userService.deleteUser(NOT_EXISTS_ID))
-                        .hasMessageContaining("[ERROR] User not found(Id: ")
-                        .isInstanceOf(CustomException.class);
+            @Nested
+            @DisplayName("현재 사용자와 다를 때")
+            class Context_when_different_current_user {
+                @Test
+                @DisplayName("에러를 반환한다.")
+                void It_returns_user() {
+                    assertThatThrownBy(() -> userService.deleteUser(EXISTS_ID, DIFF_CURRENT_USER_ID))
+                            .hasMessageContaining("[ERROR] Can not delete")
+                            .isInstanceOf(CustomException.class);
+
+                }
             }
         }
     }
