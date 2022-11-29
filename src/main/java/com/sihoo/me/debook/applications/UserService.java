@@ -17,18 +17,23 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 public class UserService {
+    private final RoleService roleService;
     private final UserRepository userRepository;
     private final Mapper mapper;
 
-    public UserService(UserRepository userRepository, Mapper mapper) {
+    public UserService(RoleService roleService, UserRepository userRepository, Mapper mapper) {
+        this.roleService = roleService;
         this.userRepository = userRepository;
         this.mapper = mapper;
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public User createUser(UserRequestData userRequestData) {
-        User user = userRequestData.toEntity();
-        return userRepository.save(user);
+        User user = userRepository.save(userRequestData.toEntity());
+
+        roleService.createRole(user);
+
+        return user;
     }
 
     public User getUserById(Long id) {

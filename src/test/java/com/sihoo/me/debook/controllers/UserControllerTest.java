@@ -1,5 +1,6 @@
 package com.sihoo.me.debook.controllers;
 
+import com.sihoo.me.debook.applications.AuthenticationService;
 import com.sihoo.me.debook.applications.UserService;
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.UserRequestData;
@@ -39,6 +40,9 @@ class UserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private AuthenticationService authenticationService;
 
     @Nested
     @DisplayName("create 메서드는")

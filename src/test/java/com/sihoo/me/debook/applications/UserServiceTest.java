@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +23,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
+@SpringBootTest
 class UserServiceTest {
 
     private final UserRepository userRepository = mock(UserRepository.class);
     private UserService userService;
+
+    @MockBean
+    private RoleService roleService;
+
     private static UserUpdateRequest userUpdateRequest;
 
     private static final Long NEW_ID = 5L;
@@ -36,7 +43,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         Mapper mapper = DozerBeanMapperBuilder.buildDefault();
-        userService = new UserService(userRepository, mapper);
+        userService = new UserService(roleService, userRepository, mapper);
     }
 
     @Nested

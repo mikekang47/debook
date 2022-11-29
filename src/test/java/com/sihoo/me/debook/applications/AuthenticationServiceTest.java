@@ -2,6 +2,7 @@ package com.sihoo.me.debook.applications;
 
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.errors.CustomException;
+import com.sihoo.me.debook.infra.RoleRepository;
 import com.sihoo.me.debook.infra.UserRepository;
 import com.sihoo.me.debook.utils.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,11 +31,12 @@ class AuthenticationServiceTest {
 
     private AuthenticationService authenticationService;
     private final UserRepository userRepository = mock(UserRepository.class);
+    private final RoleRepository roleRepository = mock(RoleRepository.class);
     private final JwtUtil jwtUtil = new JwtUtil(SECRET);
 
     @BeforeEach
     void setUp() {
-        authenticationService = new AuthenticationService(userRepository, jwtUtil);
+        authenticationService = new AuthenticationService(userRepository, jwtUtil, roleRepository);
     }
 
     @Nested
