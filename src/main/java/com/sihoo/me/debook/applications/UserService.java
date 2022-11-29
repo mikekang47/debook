@@ -78,4 +78,13 @@ public class UserService {
 
         return user;
     }
+
+    @Transactional
+    public User increaseReviewCount(Long userId) {
+        User user = findUser(userId);
+
+        user.increaseReviewCount();
+
+        return user;
+    }
 }
