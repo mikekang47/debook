@@ -55,4 +55,11 @@ public class UserService {
         return userRepository.findUserById(id)
                 .orElseThrow(() -> new CustomException("[ERROR] User not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
     }
+
+    public User deleteUser(Long id) {
+        User user = findUser(id);
+        user.changeStatus(true);
+
+        return user;
+    }
 }

@@ -37,7 +37,7 @@ public class User {
     @Column(name = "is_deleted")
     private boolean isDeleted;
 
-    private void changeStatus(boolean status) {
+    public void changeStatus(boolean status) {
         this.isDeleted = status;
     }
 

@@ -276,4 +276,47 @@ class UserServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("deleteUser 메서드는")
+    class Describe_deleteUser {
+        @Nested
+        @DisplayName("유저가 존재할 때")
+        class Context_when_exists_user {
+            @BeforeEach
+            void setUp() {
+                User user = User.builder()
+                        .id(EXISTS_ID)
+                        .build();
+
+                given(userRepository.findUserById(EXISTS_ID)).willReturn(Optional.of(user));
+            }
+
+            @Test
+            @DisplayName("user의 isDeleted상태를 변경하고, user를 반홚다.")
+            void It_returns_user() {
+                User user = userService.deleteUser(EXISTS_ID);
+
+                assertThat(user.isDeleted()).isTrue();
+            }
+        }
+
+        @Nested
+        @DisplayName("userId가 존재하지 않을 때")
+        class Context_when_gives_not_exists_id {
+            @BeforeEach
+            void setUp() {
+                given(userRepository.findUserById(NOT_EXISTS_ID))
+                        .willReturn(Optional.empty());
+            }
+
+            @Test
+            @DisplayName("에러를 반환한다.")
+            void It_throws_user_not_found_exception() {
+                assertThatThrownBy(() -> userService.deleteUser(NOT_EXISTS_ID))
+                        .hasMessageContaining("[ERROR] User not found(Id: ")
+                        .isInstanceOf(CustomException.class);
+            }
+        }
+    }
+
 }

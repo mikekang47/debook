@@ -253,4 +253,46 @@ class UserControllerTest {
         }
     }
 
+    @Nested
+    @DisplayName("delete 메서드는")
+    class Describe_delete {
+        @Nested
+        @DisplayName("id가 존재할 때")
+        class Context_when_exists_id {
+            @BeforeEach
+            void setUp() {
+                User user = User.builder()
+                        .isDeleted(true)
+                        .build();
+
+                given(userService.deleteUser(EXISTS_ID)).willReturn(user);
+            }
+
+            @Test
+            @DisplayName("유저 삭제 상태를 true로 변경 후 아무것도 반환하지 않는다.")
+            void It_change_user_state_to_true() throws Exception {
+                mockMvc.perform(delete("/users/" + EXISTS_ID))
+                        .andExpect(status().isNoContent());
+            }
+        }
+
+        @Nested
+        @DisplayName("id가 존재하지 않을 때")
+        class Context_when_not_exists_id {
+            @BeforeEach
+            void setUp() {
+                given(userService.deleteUser(NOT_EXISTS_ID))
+                        .willThrow(new CustomException("User not found(UserId: " + NOT_EXISTS_ID + ")",
+                                HttpStatus.NOT_FOUND));
+            }
+
+            @Test
+            @DisplayName("404를 응답한다.")
+            void It_responds_404() throws Exception {
+                mockMvc.perform(delete("/users/" + NOT_EXISTS_ID))
+                        .andExpect(status().isNotFound());
+            }
+        }
+    }
+
 }
