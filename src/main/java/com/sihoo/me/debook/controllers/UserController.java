@@ -3,6 +3,7 @@ package com.sihoo.me.debook.controllers;
 import com.sihoo.me.debook.applications.UserService;
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.UserRequestData;
+import com.sihoo.me.debook.dto.UserUpdateRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,5 +38,10 @@ public class UserController {
     @GetMapping
     public List<User> list() {
         return userService.getUsers();
+    }
+
+    @PatchMapping("/{id}")
+    public User update(@PathVariable Long id, @RequestBody @Valid UserUpdateRequest userUpdateRequest) {
+        return userService.updateUser(id, userUpdateRequest);
     }
 }

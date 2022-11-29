@@ -1,7 +1,10 @@
 package com.sihoo.me.debook.applications;
 
+import com.github.dozermapper.core.DozerBeanMapperBuilder;
+import com.github.dozermapper.core.Mapper;
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.UserRequestData;
+import com.sihoo.me.debook.dto.UserUpdateRequest;
 import com.sihoo.me.debook.errors.CustomException;
 import com.sihoo.me.debook.infra.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +25,7 @@ class UserServiceTest {
 
     private final UserRepository userRepository = mock(UserRepository.class);
     private UserService userService;
+    private static UserUpdateRequest userUpdateRequest;
 
     private static final Long NEW_ID = 5L;
     private static final Long EXISTS_ID = 2L;
@@ -31,7 +35,8 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository);
+        Mapper mapper = DozerBeanMapperBuilder.buildDefault();
+        userService = new UserService(userRepository, mapper);
     }
 
     @Nested
@@ -118,7 +123,7 @@ class UserServiceTest {
     class Describe_getUserBtyNickname {
         @Nested
         @DisplayName("주어진 닉네임을 포함한 유저가 존재하면")
-        class Describe_exists_contains_nickname_user {
+        class Context_exists_contains_nickname_user {
             @BeforeEach
             void setUp() {
                 User user1 = User.builder()
@@ -146,7 +151,7 @@ class UserServiceTest {
 
         @Nested
         @DisplayName("주어진 닉네임을 포함한 유저가 존재하지 않는다면")
-        class Describe_not_exists_contains_nickname_user {
+        class Context_not_exists_contains_nickname_user {
             @BeforeEach
             void setUp() {
                 given(userRepository.findUserByNickName(NOT_EXISTS_NICKNAME)).willReturn(List.of());
@@ -167,7 +172,7 @@ class UserServiceTest {
     class Describe_getUsers {
         @Nested
         @DisplayName("유저가 존재하면")
-        class Describe_exists_user {
+        class Context_exists_user {
             @BeforeEach
             void setUp() {
                 User user1 = User.builder()
@@ -197,7 +202,7 @@ class UserServiceTest {
 
         @Nested
         @DisplayName("유저가 존재하지 않는다면")
-        class Describe_not_exists_contains_nickname_user {
+        class Context_not_exists_contains_nickname_user {
             @BeforeEach
             void setUp() {
                 given(userRepository.findUsers()).willReturn(List.of());
@@ -212,4 +217,63 @@ class UserServiceTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("updateUser 메서드는")
+    class Describe_updateUser {
+        @Nested
+        @DisplayName("유저가 존재하면서")
+        class Context_exists_user {
+            @BeforeEach
+            void setUp() {
+                User user = User.builder()
+                        .id(EXISTS_ID)
+                        .email("test@email.com")
+                        .nickName("original_nickname")
+                        .password("origitnal_password")
+                        .githubId("original_githubId")
+                        .build();
+
+                given(userRepository.findUserById(EXISTS_ID)).willReturn(Optional.of(user));
+            }
+
+
+            @Nested
+            @DisplayName("올바른 요청이 들어왔을 때")
+            class Context_when_valid_requests {
+                @Test
+                @DisplayName("유저 정보를 수정 하고 유저를 반환한다.")
+                void It_returns_updated_user() {
+                    userUpdateRequest = UserUpdateRequest.builder()
+                            .nickName("nickname")
+                            .githubId("githubId")
+                            .password("password")
+                            .build();
+
+                    User user = userService.updateUser(EXISTS_ID, userUpdateRequest);
+
+                    assertThat(user.getNickName()).isEqualTo("nickname");
+                    assertThat(user.getGithubId()).isEqualTo("githubId");
+                }
+            }
+        }
+
+        @Nested
+        @DisplayName("유저가 존재하지 않는다면")
+        class Describe_not_exists_user {
+            @BeforeEach
+            void setUp() {
+                given(userRepository.findUserById(NOT_EXISTS_ID)).willReturn(Optional.empty());
+            }
+
+            @Test
+            @DisplayName("에러를 발생시킨다.")
+            void It_returns_empty_list() {
+                assertThatThrownBy(() -> userService.updateUser(NOT_EXISTS_ID, userUpdateRequest))
+                        .hasMessageContaining("[ERROR] User not found")
+                        .isInstanceOf(CustomException.class);
+            }
+        }
+    }
+
 }

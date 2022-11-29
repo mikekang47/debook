@@ -3,6 +3,7 @@ package com.sihoo.me.debook.controllers;
 import com.sihoo.me.debook.applications.UserService;
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.UserRequestData;
+import com.sihoo.me.debook.dto.UserUpdateRequest;
 import com.sihoo.me.debook.errors.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,10 +20,10 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,8 +33,6 @@ class UserControllerTest {
     private static final Long NOT_EXISTS_ID = 200L;
     private static final String EXISTS_NICK_NAME = "exists";
     private static final String NOT_EXISTS_NICK_NAME = "notexists";
-
-    private static User user;
 
     @Autowired
     private MockMvc mockMvc;
@@ -103,7 +102,7 @@ class UserControllerTest {
 
             @BeforeEach
             void setUp() {
-                user = User.builder()
+                User user = User.builder()
                         .id(EXISTS_ID)
                         .email("test@email.com")
                         .build();
@@ -192,12 +191,64 @@ class UserControllerTest {
             }
 
             @Test
-            @DisplayName("200 과 빈 리스트를 반환한다.")
+            @DisplayName("200과 빈 리스트를 반환한다.")
             void It_responds_200_and_empty_list() throws Exception {
                 mockMvc.perform(get("/users/search/" + NOT_EXISTS_NICK_NAME)
                                 .accept(MediaType.APPLICATION_JSON)
                         )
                         .andExpect(status().isOk());
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("update 메서드는")
+    class Describe_update {
+        @Nested
+        @DisplayName("사용자가 존재하고")
+        class Context_when_valid_requests {
+            @Nested
+            @DisplayName("모든 데이터가 포함되어 있을 때")
+            class Context_when_requests_not_null {
+                @BeforeEach
+                void setUp() {
+                    given(userService.updateUser(eq(EXISTS_ID), any(UserUpdateRequest.class))).will(invocation -> {
+                        UserUpdateRequest userRequestData = invocation.getArgument(1);
+                        return User.builder()
+                                .id(EXISTS_ID)
+                                .password(userRequestData.getPassword())
+                                .githubId(userRequestData.getGithubId())
+                                .nickName(userRequestData.getNickName())
+                                .build();
+                    });
+                }
+
+                @Test
+                @DisplayName("200과 수정된 유저를 응답한다.")
+                void It_responds_200_and_updated_user() throws Exception {
+                    mockMvc.perform(patch("/users/" + EXISTS_ID)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .content("{\"githubId\":\"hoo\", \"password\":\"newpassword\", \"nickName\":\"newNickName\"}")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                            )
+                            .andExpect(content().string(containsString("hoo")))
+                            .andExpect(status().isOk());
+                }
+            }
+
+            @Nested
+            @DisplayName("올바르지 않은 요청이 있을 경우")
+            class Context_when_nickname_is_blank {
+                @Test
+                @DisplayName("400을 반환한다.")
+                void It_responds_400() throws Exception {
+                    mockMvc.perform(patch("/users/" + EXISTS_ID)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .content("{\"nickName\":\"\"}")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                            )
+                            .andExpect(status().isBadRequest());
+                }
             }
         }
     }
