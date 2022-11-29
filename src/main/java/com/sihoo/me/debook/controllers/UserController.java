@@ -33,6 +33,7 @@ public class UserController {
     }
 
     @GetMapping("/search/{nickName}")
+    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
     public List<User> detailByNickName(@PathVariable String nickName) {
         return userService.getUserByNickName(nickName);
     }

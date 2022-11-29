@@ -257,50 +257,126 @@ class UserControllerTest {
         @Nested
         @DisplayName("요청 닉네임을 포함하는 유저가 있을 때")
         class Context_when_exists_contains_user_nick_name {
-            @BeforeEach
-            void setUp() {
-                User user1 = User.builder()
-                        .nickName("exists_1")
-                        .build();
+            @Nested
+            @DisplayName("ADMIN이라면")
+            class Context_when_admin {
+                @BeforeEach
+                void setUp() {
+                    User user1 = User.builder()
+                            .nickName("exists_1")
+                            .build();
 
-                User user2 = User.builder()
-                        .nickName("exists_2")
-                        .build();
+                    User user2 = User.builder()
+                            .nickName("exists_2")
+                            .build();
 
-                List<User> users = List.of(user1, user2);
+                    List<User> users = List.of(user1, user2);
 
-                given(userService.getUserByNickName(EXISTS_NICK_NAME))
-                        .willReturn(users);
+                    given(userService.getUserByNickName(EXISTS_NICK_NAME))
+                            .willReturn(users);
+
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).
+                            willReturn(List.of(new Role(ROLE_ID, EXISTS_USER_ID, RoleType.ADMIN)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                }
+
+                @Test
+                @DisplayName("200과 포함된 유저 전체를 반환한다.")
+                void It_responds_200_and_list_of_users() throws Exception {
+                    mockMvc.perform(get("/users/search/" + EXISTS_NICK_NAME)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(content().string(containsString("exists_1")))
+                            .andExpect(content().string(containsString("exists_2")))
+                            .andExpect(status().isOk());
+
+                }
             }
 
-            @Test
-            @DisplayName("200과 포함된 유저 전체를 반환한다.")
-            void It_responds_200_and_list_of_users() throws Exception {
-                mockMvc.perform(get("/users/search/" + EXISTS_NICK_NAME)
-                                .accept(MediaType.APPLICATION_JSON)
-                        )
-                        .andExpect(content().string(containsString("exists_1")))
-                        .andExpect(content().string(containsString("exists_2")))
-                        .andExpect(status().isOk());
+            @Nested
+            @DisplayName("USER라면")
+            class Context_when_user {
+                @BeforeEach
+                void setUp() {
+                    User user1 = User.builder()
+                            .nickName("exists_1")
+                            .build();
 
+                    User user2 = User.builder()
+                            .nickName("exists_2")
+                            .build();
+
+                    List<User> users = List.of(user1, user2);
+
+                    given(userService.getUserByNickName(EXISTS_NICK_NAME))
+                            .willReturn(users);
+
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).
+                            willReturn(List.of(new Role(ROLE_ID, EXISTS_USER_ID, RoleType.USER)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                }
+
+                @Test
+                @DisplayName("200과 포함된 유저 전체를 반환한다.")
+                void It_responds_200_and_list_of_users() throws Exception {
+                    mockMvc.perform(get("/users/search/" + EXISTS_NICK_NAME)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(content().string(containsString("exists_1")))
+                            .andExpect(content().string(containsString("exists_2")))
+                            .andExpect(status().isOk());
+
+                }
             }
         }
 
         @Nested
         @DisplayName("요청 닉네임을 포함하는 유저가 없을 때")
         class Context_when_not_exists_contains_user_nick_name {
-            @BeforeEach
-            void setUp() {
-                given(userService.getUserByNickName(NOT_EXISTS_NICK_NAME)).willReturn(List.of());
+            @Nested
+            @DisplayName("ADMIN이라면")
+            class Context_when_admin {
+                @BeforeEach
+                void setUp() {
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).
+                            willReturn(List.of(new Role(ROLE_ID, EXISTS_USER_ID, RoleType.ADMIN)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                    given(userService.getUserByNickName(NOT_EXISTS_NICK_NAME)).willReturn(List.of());
+                }
+
+                @Test
+                @DisplayName("200과 빈 리스트를 반환한다.")
+                void It_responds_200_and_empty_list() throws Exception {
+                    mockMvc.perform(get("/users/search/" + NOT_EXISTS_NICK_NAME)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isOk());
+                }
             }
 
-            @Test
-            @DisplayName("200과 빈 리스트를 반환한다.")
-            void It_responds_200_and_empty_list() throws Exception {
-                mockMvc.perform(get("/users/search/" + NOT_EXISTS_NICK_NAME)
-                                .accept(MediaType.APPLICATION_JSON)
-                        )
-                        .andExpect(status().isOk());
+            @Nested
+            @DisplayName("USER라면")
+            class Context_when_user {
+                @BeforeEach
+                void setUp() {
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).
+                            willReturn(List.of(new Role(ROLE_ID, EXISTS_USER_ID, RoleType.USER)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                    given(userService.getUserByNickName(NOT_EXISTS_NICK_NAME)).willReturn(List.of());
+                }
+
+                @Test
+                @DisplayName("200과 빈 리스트를 반환한다.")
+                void It_responds_200_and_empty_list() throws Exception {
+                    mockMvc.perform(get("/users/search/" + NOT_EXISTS_NICK_NAME)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isOk());
+                }
             }
         }
     }
