@@ -2,6 +2,8 @@ package com.sihoo.me.debook.controllers;
 
 import com.sihoo.me.debook.applications.AuthenticationService;
 import com.sihoo.me.debook.applications.UserService;
+import com.sihoo.me.debook.domains.Role;
+import com.sihoo.me.debook.domains.RoleType;
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.UserRequestData;
 import com.sihoo.me.debook.dto.UserUpdateRequest;
@@ -30,10 +32,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 class UserControllerTest {
-    private static final Long EXISTS_ID = 1L;
-    private static final Long NOT_EXISTS_ID = 200L;
+    private static final Long EXISTS_USER_ID = 1L;
+    private static final Long ROLE_ID = 1L;
+    private static final Long NOT_EXISTS_USER_ID = 200L;
     private static final String EXISTS_NICK_NAME = "exists";
     private static final String NOT_EXISTS_NICK_NAME = "notexists";
+
+    private static final String EXISTS_TOKEN = "eyJ0eXBlIjoiand0IiwiYWxnIjoiSFMyNTYifQ" +
+            ".eyJ1c2VySWQiOjF9.xShOSgEwVSlvgg699JR4ieN8k3thMgbuDcV_rKEA8dA";
+
+    private static final String INVALID_TOKEN = "eyJ0eXBlIjoiand0IiwiYWxnIjoiSFMyNTYifQ" +
+            ".eyJ1c2VySWQiOjF9.xShOSgEwVSlvgg699JR4ieN8k3thMgbuDcV_rKEAf3fA";
 
     @Autowired
     private MockMvc mockMvc;
@@ -55,7 +64,7 @@ class UserControllerTest {
                 given(userService.createUser(any(UserRequestData.class))).will(invocation -> {
                     UserRequestData source = invocation.getArgument(0);
                     return User.builder()
-                            .id(EXISTS_ID)
+                            .id(EXISTS_USER_ID)
                             .email(source.getEmail())
                             .password(source.getPassword())
                             .githubId(source.getGithubId())
@@ -65,7 +74,7 @@ class UserControllerTest {
             }
 
             @Test
-            @DisplayName("201 응답과 생성된 사용자를 리턴한다.")
+            @DisplayName("201 응답과 생성된 사용자를 응답한다.")
             void It_responds_201_and_user() throws Exception {
                 mockMvc.perform(post("/users")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -103,50 +112,141 @@ class UserControllerTest {
         @Nested
         @DisplayName("유저가 존재할 때")
         class Context_when_exists_id {
+            @Nested
+            @DisplayName("ADMIN이라면")
+            class Context_when_admin {
+                @BeforeEach
+                void setUp() {
+                    User user = User.builder()
+                            .id(EXISTS_USER_ID)
+                            .email("test@email.com")
+                            .build();
 
-            @BeforeEach
-            void setUp() {
-                User user = User.builder()
-                        .id(EXISTS_ID)
-                        .email("test@email.com")
-                        .build();
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).
+                            willReturn(List.of(new Role(ROLE_ID, EXISTS_USER_ID, RoleType.ADMIN)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                    given(userService.getUserById(EXISTS_USER_ID)).willReturn(user);
+                }
 
-                given(userService.getUserById(EXISTS_ID)).willReturn(user);
+                @Test
+                @DisplayName("200과 생성된 유저를 응답한다.")
+                void It_responds_200_and_user() throws Exception {
+                    mockMvc.perform(get("/users/" + EXISTS_USER_ID)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(content().string(containsString("test@email.com")))
+                            .andExpect(status().isOk());
+
+                    verify(authenticationService).getRoles(EXISTS_USER_ID);
+                    verify(authenticationService).parseToken(EXISTS_TOKEN);
+                    verify(userService).getUserById(EXISTS_USER_ID);
+                }
             }
 
-            @Test
-            @DisplayName("200과 생성된 유저를 반환한다.")
-            void It_responds_200_and_user() throws Exception {
-                mockMvc.perform(get("/users/" + EXISTS_ID)
-                                .accept(MediaType.APPLICATION_JSON)
-                        )
-                        .andExpect(content().string(containsString("test@email.com")))
-                        .andExpect(status().isOk());
+            @Nested
+            @DisplayName("USER라면")
+            class Context_when_user {
+                @BeforeEach
+                void setUp() {
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).
+                            willReturn(List.of(new Role(ROLE_ID, EXISTS_USER_ID, RoleType.USER)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                }
 
-                verify(userService).getUserById(EXISTS_ID);
+                @Test
+                @DisplayName("403에러를 응답한다.")
+                void It_responds_403() throws Exception {
+                    mockMvc.perform(get("/users/" + EXISTS_USER_ID)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isForbidden());
+
+                    verify(authenticationService).getRoles(EXISTS_USER_ID);
+                    verify(authenticationService).parseToken(EXISTS_TOKEN);
+                }
             }
         }
 
         @Nested
         @DisplayName("유저가 존재하지 않을 때")
         class Context_when_not_exists_id {
+            @Nested
+            @DisplayName("ADMIN이라면")
+            class Context_when_admin {
+                @BeforeEach
+                void setUp() {
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).
+                            willReturn(List.of(new Role(ROLE_ID, EXISTS_USER_ID, RoleType.ADMIN)));
+
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+
+                    given(userService.getUserById(NOT_EXISTS_USER_ID)).willThrow(
+                            new CustomException("User not found(Id: " +
+                                    NOT_EXISTS_USER_ID + ")",
+                                    HttpStatus.NOT_FOUND));
+                }
+
+                @Test
+                @DisplayName("404를 응답한다.")
+                void It_responds_404() throws Exception {
+                    mockMvc.perform(get("/users/" + NOT_EXISTS_USER_ID)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isNotFound());
+
+                    verify(authenticationService).getRoles(EXISTS_USER_ID);
+                    verify(authenticationService).parseToken(EXISTS_TOKEN);
+                    verify(userService).getUserById(NOT_EXISTS_USER_ID);
+                }
+            }
+
+            @Nested
+            @DisplayName("USER라면")
+            class Context_when_user {
+                @BeforeEach
+                void setUp() {
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).
+                            willReturn(List.of(new Role(ROLE_ID, EXISTS_USER_ID, RoleType.USER)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                }
+
+                @Test
+                @DisplayName("403에러를 응답한다.")
+                void It_responds_403() throws Exception {
+                    mockMvc.perform(get("/users/" + NOT_EXISTS_USER_ID)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isForbidden());
+
+                    verify(authenticationService).getRoles(EXISTS_USER_ID);
+                    verify(authenticationService).parseToken(EXISTS_TOKEN);
+
+                }
+            }
+        }
+
+        @Nested
+        @DisplayName("잘못 된 토큰이 주어졌을 때")
+        class Context_when_gives_invalid_token {
             @BeforeEach
             void setUp() {
-                given(userService.getUserById(NOT_EXISTS_ID)).willThrow(new CustomException("[ERROR] User not found(Id: "
-                        + NOT_EXISTS_ID + ")", HttpStatus.NOT_FOUND));
+                given(authenticationService.parseToken(INVALID_TOKEN))
+                        .willThrow(new CustomException("[ERROR] Invalid Token", HttpStatus.UNAUTHORIZED));
             }
 
             @Test
-            @DisplayName("404에러를 응답한다.")
-            void It_responds_404() throws Exception {
-                mockMvc.perform(get("/users/" + NOT_EXISTS_ID)
-                                .accept(MediaType.APPLICATION_JSON)
+            @DisplayName("401 에러를 응답한다.")
+            void It_responds_401() throws Exception {
+                mockMvc.perform(get("/users/" + EXISTS_USER_ID)
+                                .header("Authorization", "Bearer " + INVALID_TOKEN)
                         )
-                        .andExpect(content().string(containsString("User not found")))
-                        .andExpect(status().isNotFound());
+                        .andExpect(status().isUnauthorized());
 
-                verify(userService).getUserById(NOT_EXISTS_ID);
-
+                verify(authenticationService).parseToken(INVALID_TOKEN);
             }
         }
     }
@@ -216,10 +316,10 @@ class UserControllerTest {
             class Context_when_requests_not_null {
                 @BeforeEach
                 void setUp() {
-                    given(userService.updateUser(eq(EXISTS_ID), any(UserUpdateRequest.class))).will(invocation -> {
+                    given(userService.updateUser(eq(EXISTS_USER_ID), any(UserUpdateRequest.class))).will(invocation -> {
                         UserUpdateRequest userRequestData = invocation.getArgument(1);
                         return User.builder()
-                                .id(EXISTS_ID)
+                                .id(EXISTS_USER_ID)
                                 .password(userRequestData.getPassword())
                                 .githubId(userRequestData.getGithubId())
                                 .nickName(userRequestData.getNickName())
@@ -230,7 +330,7 @@ class UserControllerTest {
                 @Test
                 @DisplayName("200과 수정된 유저를 응답한다.")
                 void It_responds_200_and_updated_user() throws Exception {
-                    mockMvc.perform(patch("/users/" + EXISTS_ID)
+                    mockMvc.perform(patch("/users/" + EXISTS_USER_ID)
                                     .accept(MediaType.APPLICATION_JSON)
                                     .content("{\"githubId\":\"hoo\", \"password\":\"newpassword\", \"nickName\":\"newNickName\"}")
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -246,7 +346,7 @@ class UserControllerTest {
                 @Test
                 @DisplayName("400을 반환한다.")
                 void It_responds_400() throws Exception {
-                    mockMvc.perform(patch("/users/" + EXISTS_ID)
+                    mockMvc.perform(patch("/users/" + EXISTS_USER_ID)
                                     .accept(MediaType.APPLICATION_JSON)
                                     .content("{\"nickName\":\"\"}")
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -269,13 +369,13 @@ class UserControllerTest {
                         .isDeleted(true)
                         .build();
 
-                given(userService.deleteUser(EXISTS_ID)).willReturn(user);
+                given(userService.deleteUser(EXISTS_USER_ID)).willReturn(user);
             }
 
             @Test
             @DisplayName("유저 삭제 상태를 true로 변경 후 아무것도 반환하지 않는다.")
             void It_change_user_state_to_true() throws Exception {
-                mockMvc.perform(delete("/users/" + EXISTS_ID))
+                mockMvc.perform(delete("/users/" + EXISTS_USER_ID))
                         .andExpect(status().isNoContent());
             }
         }
@@ -285,15 +385,15 @@ class UserControllerTest {
         class Context_when_not_exists_id {
             @BeforeEach
             void setUp() {
-                given(userService.deleteUser(NOT_EXISTS_ID))
-                        .willThrow(new CustomException("User not found(UserId: " + NOT_EXISTS_ID + ")",
+                given(userService.deleteUser(NOT_EXISTS_USER_ID))
+                        .willThrow(new CustomException("User not found(UserId: " + NOT_EXISTS_USER_ID + ")",
                                 HttpStatus.NOT_FOUND));
             }
 
             @Test
             @DisplayName("404를 응답한다.")
             void It_responds_404() throws Exception {
-                mockMvc.perform(delete("/users/" + NOT_EXISTS_ID))
+                mockMvc.perform(delete("/users/" + NOT_EXISTS_USER_ID))
                         .andExpect(status().isNotFound());
             }
         }

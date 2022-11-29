@@ -5,6 +5,7 @@ import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.UserRequestData;
 import com.sihoo.me.debook.dto.UserUpdateRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -26,6 +27,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated() and hasAuthority('ADMIN')")
     public User detailById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
