@@ -79,6 +79,9 @@ dependencies {
 	// QueryDsl
 	implementation 'com.querydsl:querydsl-jpa:5.0.0'
 	implementation 'com.querydsl:querydsl-apt:5.0.0'
+
+	// DozerMapper
+    implementation 'com.github.dozermapper:dozer-core:6.4.0'
 }
 
 tasks.named('test') {
