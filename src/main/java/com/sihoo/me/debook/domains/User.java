@@ -62,4 +62,8 @@ public class User {
     public void decreaseReplyCount() {
         this.replyCount -= 1;
     }
+
+    public boolean authenticate(String password) {
+        return this.password.equals(password);
+    }
 }

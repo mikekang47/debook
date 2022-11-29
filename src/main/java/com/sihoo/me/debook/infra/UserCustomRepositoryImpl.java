@@ -42,4 +42,13 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
                 .stream()
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return jpaQueryFactory.selectFrom(user)
+                .where(user.isDeleted.eq(false))
+                .where(user.email.eq(email))
+                .stream()
+                .findFirst();
+    }
 }
