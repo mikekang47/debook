@@ -300,7 +300,7 @@ class UserControllerTest {
 
                     given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
                 }
-                
+
                 @Test
                 @DisplayName("400을 반환한다.")
                 void It_responds_400() throws Exception {
@@ -377,7 +377,7 @@ class UserControllerTest {
         }
 
 
-    @Nested
+        @Nested
         @DisplayName("id가 존재하지 않을 때")
         class Context_when_not_exists_id {
             @BeforeEach
