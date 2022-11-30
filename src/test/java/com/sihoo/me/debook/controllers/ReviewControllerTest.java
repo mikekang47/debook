@@ -27,8 +27,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -186,6 +185,44 @@ class ReviewControllerTest {
                         .andDo(print())
                         .andExpect(status().isOk());
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("upate메서드는")
+    class Describe_update {
+        @Nested
+        @DisplayName("올바른 reviewId, 올바른 요청이 주어졌고, 작성자와 사용자가 같을 때")
+        class Context_when_valid_review_Id_and_valid_requests_and_same_user {
+            @BeforeEach
+            void setUp() {
+                given(authenticationService.getRoles(EXISTS_USER_ID)).willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
+                given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                given(reviewService.updateReview(eq(EXISTS_REVIEW_ID), any(ReviewRequestData.class), eq(EXISTS_USER_ID)))
+                        .will(invocation -> {
+                            ReviewRequestData reviewRequestData = invocation.getArgument(1);
+                            return Review.builder()
+                                    .id(EXISTS_REVIEW_ID)
+                                    .userId(EXISTS_USER_ID)
+                                    .title(reviewRequestData.getTitle())
+                                    .body(reviewRequestData.getBody())
+                                    .build();
+                        });
+            }
+
+            @Test
+            @DisplayName("200과 리뷰를 반환한다")
+            void It_responds_200_and_review() throws Exception {
+                mvc.perform(patch("/reviews/" + EXISTS_REVIEW_ID)
+                                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                .accept(MediaType.APPLICATION_JSON_UTF8)
+                                .content("{\"title\":\"수정된 타이틀\", \"body\":\"수정된 바디입니다. 10글자 채우기\"}")
+                                .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                        )
+                        .andDo(print())
+                        .andExpect(status().isOk());
+            }
+
         }
     }
 }

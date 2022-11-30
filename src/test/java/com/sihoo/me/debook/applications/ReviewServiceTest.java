@@ -1,5 +1,7 @@
 package com.sihoo.me.debook.applications;
 
+import com.github.dozermapper.core.DozerBeanMapperBuilder;
+import com.github.dozermapper.core.Mapper;
 import com.sihoo.me.debook.domains.Review;
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.ReviewRequestData;
@@ -41,7 +43,8 @@ class ReviewServiceTest {
 
     @BeforeEach
     void setUp() {
-        reviewService = new ReviewService(userService, reviewRepository);
+        Mapper mapper = DozerBeanMapperBuilder.buildDefault();
+        reviewService = new ReviewService(userService, reviewRepository, mapper);
     }
 
     @Nested
@@ -164,6 +167,38 @@ class ReviewServiceTest {
 
                     assertThat(reviews.get(0).getTitle()).isEqualTo(TITLE);
                 }
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("updateReview")
+    class Describe_updateReview {
+        @Nested
+        @DisplayName("존재하는 리뷰와 올바른 요청이 왔을 때")
+        class Context_when_exists_review_and_valid_requests {
+            @BeforeEach
+            void setUp() {
+                Review review = Review.builder()
+                        .id(EXISTS_REVIEW_ID)
+                        .title(TITLE)
+                        .body(BODY)
+                        .userId(EXISTS_USER_ID)
+                        .build();
+
+                given(reviewRepository.findById(EXISTS_REVIEW_ID)).willReturn(Optional.of(review));
+            }
+
+            @Test
+            @DisplayName("업데이트된 리뷰를 반환한다.")
+            void It_returns_updated_review() {
+                ReviewRequestData reviewRequestData = new ReviewRequestData("새로 작성된 타이틀", "업데이트된 본문입니다. 10글자가 넘습니다.");
+
+                Review review = reviewService.updateReview(EXISTS_REVIEW_ID, reviewRequestData, EXISTS_USER_ID);
+
+                assertThat(review.getId()).isEqualTo(EXISTS_REVIEW_ID);
+                assertThat(review.getTitle()).isEqualTo("새로 작성된 타이틀");
+                assertThat(review.getBody()).contains("업데이트");
             }
         }
     }

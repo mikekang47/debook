@@ -25,7 +25,8 @@ public class ReviewController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
-    public Review create(@RequestBody @Valid ReviewRequestData reviewRequestData, UserAuthentication userAuthentication) {
+    public Review create(@RequestBody @Valid ReviewRequestData reviewRequestData,
+                         UserAuthentication userAuthentication) {
         Long userId = userAuthentication.getUserId();
 
         return reviewService.createReview(userId, reviewRequestData);
@@ -37,7 +38,16 @@ public class ReviewController {
     }
 
     @GetMapping("/search/{keyword}")
-    public List<Review> detailByKeyword(@PathVariable String keyword, @RequestParam(name = "sortType") String sortType) {
+    public List<Review> detailByKeyword(@PathVariable String keyword, @RequestParam String sortType) {
         return reviewService.getReviewByKeyword(keyword, SortType.from(sortType).getType());
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
+    public Review update(@PathVariable Long id,
+                         @RequestBody @Valid ReviewRequestData reviewRequestData,
+                         UserAuthentication userAuthentication) {
+        Long userId = userAuthentication.getUserId();
+        return reviewService.updateReview(id, reviewRequestData, userId);
     }
 }

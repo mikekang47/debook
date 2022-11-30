@@ -41,4 +41,9 @@ public class Review {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public void changeWith(Review review) {
+        this.title = review.title;
+        this.body = review.body;
+    }
+
 }
