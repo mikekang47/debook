@@ -83,6 +83,15 @@ public class UserService {
         return user;
     }
 
+    @Transactional
+    public User decreaseReviewCount(Long userId) {
+        User user = findUser(userId);
+
+        user.decreaseReviewCount();
+
+        return user;
+    }
+
     private User findUser(Long id) {
         return userRepository.findUserById(id)
                 .orElseThrow(() -> new CustomException("[ERROR] User not found(Id: " + id + ")", HttpStatus.NOT_FOUND));

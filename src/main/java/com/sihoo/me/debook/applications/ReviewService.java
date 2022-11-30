@@ -62,6 +62,8 @@ public class ReviewService {
 
         reviewRepository.delete(review);
 
+        userService.decreaseReviewCount(userId);
+
         return review;
     }
 
