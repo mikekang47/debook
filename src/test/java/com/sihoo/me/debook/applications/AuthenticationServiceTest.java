@@ -10,6 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -23,6 +25,7 @@ class AuthenticationServiceTest {
     private static final String EXISTS_EMAIL = "exists@email.com";
     private static final String NOT_EXISTS_EMAIL = "notexists@email.com";
     private static final String EXISTS_PASSWORD = "validpassword";
+    private static final String ENCODED_PASSWORD = "$2a$10$H7SaXu2yaM/LK2xZr5/aHeQKETNff6Ktgi7oSFQYp2IfraqxWmO5m";
     private static final String NOT_EXISTS_PASSWORD = "nopassword";
     private static final String WRONG_PASSWORD = "wrongpassword";
     private static final String SECRET = "thisapplicationisfordeveloperwholovesbook";
@@ -33,10 +36,11 @@ class AuthenticationServiceTest {
     private final UserRepository userRepository = mock(UserRepository.class);
     private final RoleRepository roleRepository = mock(RoleRepository.class);
     private final JwtUtil jwtUtil = new JwtUtil(SECRET);
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @BeforeEach
     void setUp() {
-        authenticationService = new AuthenticationService(userRepository, jwtUtil, roleRepository);
+        authenticationService = new AuthenticationService(userRepository, jwtUtil, roleRepository, passwordEncoder);
     }
 
     @Nested
@@ -50,7 +54,7 @@ class AuthenticationServiceTest {
                 User user = User.builder()
                         .id(EXISTS_ID)
                         .email(EXISTS_EMAIL)
-                        .password(EXISTS_PASSWORD)
+                        .password(ENCODED_PASSWORD)
                         .isDeleted(false)
                         .build();
 
@@ -93,7 +97,7 @@ class AuthenticationServiceTest {
                 User user = User.builder()
                         .id(EXISTS_ID)
                         .email(EXISTS_EMAIL)
-                        .password(EXISTS_PASSWORD)
+                        .password(ENCODED_PASSWORD)
                         .isDeleted(false)
                         .build();
 

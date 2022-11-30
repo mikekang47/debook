@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +47,8 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         Mapper mapper = DozerBeanMapperBuilder.buildDefault();
-        userService = new UserService(roleService, userRepository, mapper);
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        userService = new UserService(roleService, userRepository, mapper, passwordEncoder);
     }
 
     @Nested
@@ -239,7 +242,7 @@ class UserServiceTest {
                         .id(EXISTS_ID)
                         .email("test@email.com")
                         .nickName("original_nickname")
-                        .password("origitnal_password")
+                        .password("original_password")
                         .githubId("original_githubId")
                         .build();
 
@@ -263,6 +266,7 @@ class UserServiceTest {
 
                     assertThat(user.getNickName()).isEqualTo("nickname");
                     assertThat(user.getGithubId()).isEqualTo("githubId");
+                    assertThat(user.getPassword()).isNotEqualTo("original_password");
                 }
             }
         }
@@ -291,7 +295,7 @@ class UserServiceTest {
             @DisplayName("에러를 발생시킨다.")
             void It_returns_empty_list() {
                 assertThatThrownBy(() -> userService.updateUser(NOT_EXISTS_ID, userUpdateRequest, DIFF_CURRENT_USER_ID))
-                        .hasMessageContaining("[ERROR] Can not modify others information")
+                        .hasMessageContaining("[ERROR] No authorization for user")
                         .isInstanceOf(CustomException.class);
             }
         }
@@ -332,7 +336,7 @@ class UserServiceTest {
                 @DisplayName("에러를 반환한다.")
                 void It_returns_user() {
                     assertThatThrownBy(() -> userService.deleteUser(EXISTS_ID, DIFF_CURRENT_USER_ID))
-                            .hasMessageContaining("[ERROR] Can not delete")
+                            .hasMessageContaining("[ERROR] No authorization for user")
                             .isInstanceOf(CustomException.class);
 
                 }
@@ -368,7 +372,7 @@ class UserServiceTest {
                 @DisplayName("에러를 반환한다.")
                 void It_returns_user() {
                     assertThatThrownBy(() -> userService.deleteUser(EXISTS_ID, DIFF_CURRENT_USER_ID))
-                            .hasMessageContaining("[ERROR] Can not delete")
+                            .hasMessageContaining("[ERROR] No authorization for user")
                             .isInstanceOf(CustomException.class);
 
                 }
