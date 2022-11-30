@@ -8,6 +8,7 @@ import com.sihoo.me.debook.infra.UserRepository;
 import com.sihoo.me.debook.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,10 +19,13 @@ public class AuthenticationService {
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
 
-    public AuthenticationService(UserRepository userRepository, JwtUtil jwtUtil, RoleRepository roleRepository) {
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthenticationService(UserRepository userRepository, JwtUtil jwtUtil, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public String login(String email, String password) {
@@ -29,7 +33,7 @@ public class AuthenticationService {
                 .orElseThrow(() -> new CustomException("User not found(Email: " + email + ")",
                         HttpStatus.NOT_FOUND));
 
-        boolean authentication = user.authenticate(password);
+        boolean authentication = user.authenticate(password, passwordEncoder);
 
         if (!authentication) {
             throw new CustomException("Login failed. Password doesn't match (Email: " + email + ")", HttpStatus.BAD_REQUEST);

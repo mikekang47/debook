@@ -68,7 +68,7 @@ public class User {
         this.replyCount -= 1;
     }
 
-    public boolean authenticate(String password) {
-        return this.password.equals(password);
+    public boolean authenticate(String password, PasswordEncoder passwordEncoder) {
+        return !isDeleted && passwordEncoder.matches(password, this.password);
     }
 }
