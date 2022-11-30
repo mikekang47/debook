@@ -7,6 +7,7 @@ import com.sihoo.me.debook.dto.UserUpdateRequest;
 import com.sihoo.me.debook.errors.CustomException;
 import com.sihoo.me.debook.infra.UserRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,16 +23,20 @@ public class UserService {
     private final UserRepository userRepository;
     private final Mapper mapper;
 
-    public UserService(RoleService roleService, UserRepository userRepository, Mapper mapper) {
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(RoleService roleService, UserRepository userRepository, Mapper mapper, PasswordEncoder passwordEncoder) {
         this.roleService = roleService;
         this.userRepository = userRepository;
         this.mapper = mapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public User createUser(UserRequestData userRequestData) {
         User user = userRepository.save(userRequestData.toEntity());
 
+        user.changePassword(user.getPassword(), passwordEncoder);
         roleService.createRole(user);
 
         return user;
@@ -54,7 +59,8 @@ public class UserService {
         authorize(id, userId);
 
         User user = findUser(id);
-        user.changeWith(mapper.map(userUpdateRequest, User.class));
+        User source = mapper.map(userUpdateRequest, User.class);
+        user.changeWith(source, passwordEncoder);
 
         return user;
     }
