@@ -51,10 +51,7 @@ public class UserService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public User updateUser(Long id, UserUpdateRequest userUpdateRequest, Long userId) {
-        if (!Objects.equals(id, userId)) {
-            throw new CustomException("[ERROR] Can not modify others information(UserId: " + id +
-                    ", Current User Id: " + userId + ")", HttpStatus.UNAUTHORIZED);
-        }
+        authorize(id, userId);
 
         User user = findUser(id);
         user.changeWith(mapper.map(userUpdateRequest, User.class));
@@ -62,16 +59,8 @@ public class UserService {
         return user;
     }
 
-    private User findUser(Long id) {
-        return userRepository.findUserById(id)
-                .orElseThrow(() -> new CustomException("[ERROR] User not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
-    }
-
     public User deleteUser(Long id, Long userId) {
-        if (!Objects.equals(id, userId)) {
-            throw new CustomException("[ERROR] Can not delete other user(UserId: " + id +
-                    ", Current User Id: " + userId + ")", HttpStatus.UNAUTHORIZED);
-        }
+        authorize(id, userId);
 
         User user = findUser(id);
         user.changeStatus(true);
@@ -86,5 +75,17 @@ public class UserService {
         user.increaseReviewCount();
 
         return user;
+    }
+
+    private User findUser(Long id) {
+        return userRepository.findUserById(id)
+                .orElseThrow(() -> new CustomException("[ERROR] User not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
+    }
+
+    private static void authorize(Long id, Long userId) {
+        if (!Objects.equals(id, userId)) {
+            throw new CustomException("[ERROR] No authorization for user(UserId: " + id +
+                    ", Current User Id: " + userId + ")", HttpStatus.UNAUTHORIZED);
+        }
     }
 }
