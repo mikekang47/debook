@@ -48,11 +48,19 @@ public class ReviewService {
     public Review updateReview(Long id, ReviewRequestData reviewRequestData, Long userId) {
         Review review = findReview(id);
 
-        if (!Objects.equals(userId, review.getUserId())) {
-            throw new CustomException("[ERROR] No authorization for modify review(UserId: " + userId + ")", HttpStatus.UNAUTHORIZED);
-        }
+        authorize(userId, review);
 
         review.changeWith(mapper.map(reviewRequestData, Review.class));
+
+        return review;
+    }
+
+    public Review deleteReview(Long id, Long userId) {
+        Review review = findReview(id);
+
+        authorize(userId, review);
+
+        reviewRepository.delete(review);
 
         return review;
     }
@@ -60,5 +68,11 @@ public class ReviewService {
     private Review findReview(Long id) {
         return reviewRepository.findById(id)
                 .orElseThrow(() -> new CustomException("[ERROR] Review not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
+    }
+
+    private static void authorize(Long userId, Review review) {
+        if (!Objects.equals(userId, review.getUserId())) {
+            throw new CustomException("[ERROR] No authorization for review(UserId: " + userId + ")", HttpStatus.UNAUTHORIZED);
+        }
     }
 }

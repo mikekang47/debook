@@ -50,4 +50,12 @@ public class ReviewController {
         Long userId = userAuthentication.getUserId();
         return reviewService.updateReview(id, reviewRequestData, userId);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
+    public void delete(@PathVariable Long id, UserAuthentication userAuthentication) {
+        Long userId = userAuthentication.getUserId();
+        reviewService.deleteReview(id, userId);
+    }
 }
