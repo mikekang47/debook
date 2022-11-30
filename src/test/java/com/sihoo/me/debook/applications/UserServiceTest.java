@@ -380,4 +380,55 @@ class UserServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("increaseReviewCount 메서드는")
+    class Describe_increaseReviewCount {
+        @Nested
+        @DisplayName("유저가 존재할 때")
+        class Context_when_exists_user {
+            @BeforeEach
+            void setUp() {
+                User user = User.builder()
+                        .id(EXISTS_ID)
+                        .reviewCount(2)
+                        .build();
+
+                given(userRepository.findUserById(EXISTS_ID)).willReturn(Optional.of(user));
+            }
+
+            @Test
+            @DisplayName("사용자의 리뷰 카운트를 증가시키고 유저를 반환한다.")
+            void It_increases_review_count_and_returns_review() {
+                User user = userService.increaseReviewCount(EXISTS_ID);
+
+                assertThat(user.getReviewCount()).isEqualTo(3);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("decreaseReviewCount 메서드는")
+    class Describe_decreaseReviewCount {
+        @Nested
+        @DisplayName("유저가 존재할 때")
+        class Context_when_exists_user {
+            @BeforeEach
+            void setUp() {
+                User user = User.builder()
+                        .id(EXISTS_ID)
+                        .reviewCount(2)
+                        .build();
+
+                given(userRepository.findUserById(EXISTS_ID)).willReturn(Optional.of(user));
+            }
+
+            @Test
+            @DisplayName("사용자의 리뷰 카운트를 증가시키고 유저를 반환한다.")
+            void It_decreases_review_count_and_returns_review() {
+                User user = userService.decreaseReviewCount(EXISTS_ID);
+
+                assertThat(user.getReviewCount()).isEqualTo(1);
+            }
+        }
+    }
 }
