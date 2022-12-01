@@ -31,6 +31,9 @@ public class Reply {
     @Column(name = "review_id")
     private Long reviewId;
 
+    @Column(name= "target_reply_id")
+    private Long targetReplyId;
+
     @Column(name = "is_deleted")
     private boolean isDeleted;
 

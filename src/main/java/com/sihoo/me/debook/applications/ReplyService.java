@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+
 @Service
 @Transactional(readOnly = true)
 public class ReplyService {
@@ -26,21 +29,33 @@ public class ReplyService {
     }
 
     @Transactional
-    public Reply createReply(ReplyRequestData replyRequestData, Long reviewId, Long userId) {
+    public Reply createReply(
+            ReplyRequestData replyRequestData,
+            Long reviewId,
+            Long targetReplyId,
+            Long authorId) {
+        checkReviewExists(reviewId);
+
+        Reply reply = replyRequestData.toEntity(reviewId, targetReplyId, authorId);
+        userService.increaseReplyCount(authorId);
+
+        return replyRepository.save(reply);
+    }
+
+    public Reply getReplyById(Long id) {
+        return replyRepository.findReviewById(id)
+                .orElseThrow(() -> new CustomException("[ERROR] Reply not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
+    }
+
+    public List<Reply> getRepliesByReviewId(Long id) {
+        return replyRepository.findAllByReviewId(id);
+    }
+
+    private void checkReviewExists(Long reviewId) {
         boolean existsReview = reviewService.existsReview(reviewId);
 
         if (!existsReview) {
             throw new CustomException("[ERROR] Review not found(Id: " + reviewId + ")", HttpStatus.NOT_FOUND);
         }
-
-        Reply reply = replyRequestData.toEntity(reviewId, userId);
-        userService.increaseReplyCount(userId);
-
-        return replyRepository.save(reply);
-    }
-
-    public Reply getReviewById(Long id) {
-        return replyRepository.findReviewById(id)
-                .orElseThrow(() -> new CustomException("[ERROR] Reply not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
     }
 }

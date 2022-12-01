@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +30,7 @@ class ReplyServiceTest {
     private static final Long EXISTS_REPLY_ID = 1L;
     private static final Long NOT_EXISTS_REPLY_ID = 200L;
     private static final Long EXISTS_USER_ID = 5L;
+    private static final Long NEW_REPLY_ID = 0L;
 
     private ReplyService replyService;
     @MockBean
@@ -50,7 +52,7 @@ class ReplyServiceTest {
     @DisplayName("createReply 메서드는")
     class Describe_createReply {
         @Nested
-        @DisplayName("올바른 데이터가 왔을 때")
+        @DisplayName("첫 댓글을 생성하면서, 올바른 데이터가 왔을 때")
         class Context_when_valid_requests {
             @BeforeEach
             void setUp() {
@@ -67,6 +69,7 @@ class ReplyServiceTest {
                             .id(EXISTS_REPLY_ID)
                             .userId(reply.getUserId())
                             .message(reply.getMessage())
+                            .targetReplyId(reply.getTargetReplyId())
                             .reviewId(reply.getReviewId())
                             .build();
                 });
@@ -76,7 +79,7 @@ class ReplyServiceTest {
             @DisplayName("생성된 리뷰를 반환한다.")
             void It_returns_reply() {
                 ReplyRequestData replyRequestData = new ReplyRequestData("이거 좋은 책입니까?");
-                Reply reply = replyService.createReply(replyRequestData, EXISTS_REVIEW_ID, EXISTS_USER_ID);
+                Reply reply = replyService.createReply(replyRequestData, EXISTS_REVIEW_ID, NEW_REPLY_ID, EXISTS_USER_ID);
 
                 assertThat(reply.getMessage()).isEqualTo("이거 좋은 책입니까?");
                 assertThat(reply.getUserId()).isEqualTo(EXISTS_USER_ID);
@@ -96,7 +99,7 @@ class ReplyServiceTest {
             @DisplayName("not found 에러를 던진다.")
             void It_throws_error() {
                 ReplyRequestData replyRequestData = new ReplyRequestData("이거 좋은 책입니까?");
-                assertThatThrownBy(() -> replyService.createReply(replyRequestData, NOT_EXISTS_REVIEW_ID, EXISTS_USER_ID))
+                assertThatThrownBy(() -> replyService.createReply(replyRequestData, NOT_EXISTS_REVIEW_ID, NEW_REPLY_ID, EXISTS_USER_ID))
                         .hasMessageContaining("[ERROR] Review not found")
                         .isInstanceOf(CustomException.class);
             }
@@ -121,7 +124,7 @@ class ReplyServiceTest {
             @Test
             @DisplayName("댓글을 반환한다.")
             void It_returns_reply() {
-                Reply reply = replyService.getReviewById(EXISTS_REPLY_ID);
+                Reply reply = replyService.getReplyById(EXISTS_REPLY_ID);
 
                 assertThat(reply.getId()).isEqualTo(EXISTS_REPLY_ID);
             }
@@ -138,9 +141,37 @@ class ReplyServiceTest {
             @Test
             @DisplayName("NotFound 에러를 던진다.")
             void It_throws_not_found_error() {
-                assertThatThrownBy(() -> replyService.getReviewById(NOT_EXISTS_REPLY_ID))
+                assertThatThrownBy(() -> replyService.getReplyById(NOT_EXISTS_REPLY_ID))
                         .hasMessageContaining("[ERROR] Reply not found")
                         .isInstanceOf(CustomException.class);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("getRepliesByReviewId 메서드는")
+    class Describe_getRepliesByReviewId {
+        @Nested
+        @DisplayName("리뷰의 댓글이 존재할 때")
+        class Context_when_reply_exists {
+            @BeforeEach
+            void setUp() {
+                Reply reply1 = Reply.builder()
+                        .reviewId(EXISTS_REVIEW_ID)
+                        .build();
+                Reply reply2 = Reply.builder()
+                        .reviewId(EXISTS_REVIEW_ID)
+                        .build();
+
+                given(replyRepository.findAllByReviewId(EXISTS_REVIEW_ID)).willReturn(List.of(reply1, reply2));
+            }
+
+            @Test
+            @DisplayName("댓글을 전부 반환한다.")
+            void It_returns_replies() {
+                List<Reply> replies = replyService.getRepliesByReviewId(EXISTS_REVIEW_ID);
+
+                assertThat(replies.get(0).getReviewId()).isEqualTo(EXISTS_REVIEW_ID);
             }
         }
     }

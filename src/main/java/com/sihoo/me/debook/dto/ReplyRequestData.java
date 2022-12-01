@@ -17,9 +17,10 @@ public class ReplyRequestData {
     @Mapping("message")
     private String message;
 
-    public Reply toEntity(Long reviewId, Long userId) {
+    public Reply toEntity(Long reviewId, Long targetReplyId, Long userId) {
         return Reply.builder()
                 .message(this.message)
+                .targetReplyId(targetReplyId)
                 .reviewId(reviewId)
                 .userId(userId)
                 .build();

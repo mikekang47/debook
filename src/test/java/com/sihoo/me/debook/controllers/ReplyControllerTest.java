@@ -33,6 +33,7 @@ public class ReplyControllerTest {
     private static final Long EXISTS_USER_ID = 1L;
     private static final Long EXISTS_REPLY_ID = 5L;
     private static final Long EXISTS_REVIEW_ID = 6L;
+    private static final Long NEW_REPLY_ID = 0L;
 
     private static final String EXISTS_TOKEN = "eyJ0eXBlIjoiand0IiwiYWxnIjoiSFMyNTYifQ" +
             ".eyJ1c2VySWQiOjF9.xShOSgEwVSlvgg699JR4ieN8k3thMgbuDcV_rKEA8dA";
@@ -60,7 +61,7 @@ public class ReplyControllerTest {
                 void setUp() {
                     given(authenticationService.getRoles(EXISTS_USER_ID)).willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
                     given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
-                    given(replyService.createReply(any(ReplyRequestData.class), eq(EXISTS_REVIEW_ID), eq(EXISTS_USER_ID))).will(invocation -> {
+                    given(replyService.createReply(any(ReplyRequestData.class), eq(EXISTS_REVIEW_ID), eq(NEW_REPLY_ID), eq(EXISTS_USER_ID))).will(invocation -> {
                         ReplyRequestData source = invocation.getArgument(0);
                         return Reply.builder()
                                 .id(EXISTS_REPLY_ID)
@@ -122,7 +123,7 @@ public class ReplyControllerTest {
                         .id(EXISTS_REPLY_ID)
                         .build();
 
-                given(replyService.getReviewById(EXISTS_REPLY_ID)).willReturn(reply);
+                given(replyService.getReplyById(EXISTS_REPLY_ID)).willReturn(reply);
             }
             @Test
             @DisplayName("200과 댓글을 응답한다.")
