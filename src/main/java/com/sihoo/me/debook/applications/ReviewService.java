@@ -77,4 +77,8 @@ public class ReviewService {
             throw new CustomException("[ERROR] No authorization for review(UserId: " + userId + ")", HttpStatus.UNAUTHORIZED);
         }
     }
+
+    public boolean existsReview(Long reviewId) {
+        return reviewRepository.existsReviewById(reviewId);
+    }
 }

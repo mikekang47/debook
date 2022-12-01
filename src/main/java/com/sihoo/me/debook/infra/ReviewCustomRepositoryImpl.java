@@ -37,4 +37,14 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
                 .where(review.body.contains(keyword))
                 .stream().collect(Collectors.toList());
     }
+
+    @Override
+    public boolean existsReviewById(Long reviewId) {
+        Integer result = jpaQueryFactory.selectOne()
+                .from(review)
+                .where(review.id.eq(reviewId))
+                .fetchFirst();
+
+        return result != null;
+    }
 }
