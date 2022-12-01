@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +27,7 @@ class ReplyServiceTest {
     private static final Long EXISTS_REVIEW_ID = 2L;
     private static final Long NOT_EXISTS_REVIEW_ID = 2L;
     private static final Long EXISTS_REPLY_ID = 1L;
+    private static final Long NOT_EXISTS_REPLY_ID = 200L;
     private static final Long EXISTS_USER_ID = 5L;
 
     private ReplyService replyService;
@@ -100,4 +103,45 @@ class ReplyServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("getReplyById 메서드는")
+    class Describe_getReplyById {
+        @Nested
+        @DisplayName("댓글이 존재할 때")
+        class Context_when_exists_review {
+            @BeforeEach
+            void setUp() {
+                Reply reply = Reply.builder()
+                        .id(EXISTS_REPLY_ID)
+                        .build();
+
+                given(replyRepository.findReviewById(EXISTS_REPLY_ID)).willReturn(Optional.of(reply));
+            }
+
+            @Test
+            @DisplayName("댓글을 반환한다.")
+            void It_returns_reply() {
+                Reply reply = replyService.getReviewById(EXISTS_REPLY_ID);
+
+                assertThat(reply.getId()).isEqualTo(EXISTS_REPLY_ID);
+            }
+        }
+
+        @Nested
+        @DisplayName("댓글이 존재하지 않을 때")
+        class Context_when_not_exists_review {
+            @BeforeEach
+            void setUp() {
+                given(replyRepository.findReviewById(NOT_EXISTS_REPLY_ID)).willReturn(Optional.empty());
+            }
+
+            @Test
+            @DisplayName("NotFound 에러를 던진다.")
+            void It_throws_not_found_error() {
+                assertThatThrownBy(() -> replyService.getReviewById(NOT_EXISTS_REPLY_ID))
+                        .hasMessageContaining("[ERROR] Reply not found")
+                        .isInstanceOf(CustomException.class);
+            }
+        }
+    }
 }

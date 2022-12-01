@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ReplyController.class)
 public class ReplyControllerTest {
     private static final Long EXISTS_USER_ID = 1L;
-    private static final Long NEW_REPLY_ID = 5L;
+    private static final Long EXISTS_REPLY_ID = 5L;
     private static final Long EXISTS_REVIEW_ID = 6L;
 
     private static final String EXISTS_TOKEN = "eyJ0eXBlIjoiand0IiwiYWxnIjoiSFMyNTYifQ" +
@@ -62,7 +63,7 @@ public class ReplyControllerTest {
                     given(replyService.createReply(any(ReplyRequestData.class), eq(EXISTS_REVIEW_ID), eq(EXISTS_USER_ID))).will(invocation -> {
                         ReplyRequestData source = invocation.getArgument(0);
                         return Reply.builder()
-                                .id(NEW_REPLY_ID)
+                                .id(EXISTS_REPLY_ID)
                                 .message(source.getMessage())
                                 .reviewId(EXISTS_REVIEW_ID)
                                 .userId(EXISTS_USER_ID)
@@ -105,6 +106,29 @@ public class ReplyControllerTest {
                             .andExpect(content().string(containsString("[ERROR] Message length must be longer than 2")))
                             .andExpect(status().isBadRequest());
                 }
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("detailById 메서드는")
+    class Describe_detailById {
+        @Nested
+        @DisplayName("댓글이 존재할 때")
+        class Context_when_reply_exists {
+            @BeforeEach
+            void setUp() {
+                Reply reply = Reply.builder()
+                        .id(EXISTS_REPLY_ID)
+                        .build();
+
+                given(replyService.getReviewById(EXISTS_REPLY_ID)).willReturn(reply);
+            }
+            @Test
+            @DisplayName("200과 댓글을 응답한다.")
+            void It_responds_200_and_reply() throws Exception {
+                mvc.perform(get("/replies/" + EXISTS_REPLY_ID))
+                        .andExpect(status().isOk());
             }
         }
     }

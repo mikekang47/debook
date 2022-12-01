@@ -38,4 +38,9 @@ public class ReplyService {
 
         return replyRepository.save(reply);
     }
+
+    public Reply getReviewById(Long id) {
+        return replyRepository.findReviewById(id)
+                .orElseThrow(() -> new CustomException("[ERROR] Reply not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
+    }
 }

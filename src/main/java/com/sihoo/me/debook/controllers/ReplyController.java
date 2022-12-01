@@ -28,4 +28,9 @@ public class ReplyController {
         return replyService.createReply(replyRequestData, reviewId, userId);
     }
 
+    @GetMapping("/{id}")
+    public Reply detailById(@PathVariable Long id) {
+        return replyService.getReviewById(id);
+    }
+
 }
