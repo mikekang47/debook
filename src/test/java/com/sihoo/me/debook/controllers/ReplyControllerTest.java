@@ -22,8 +22,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -192,6 +191,48 @@ public class ReplyControllerTest {
                 }
             }
         }
+    }
 
+    @Nested
+    @DisplayName("update 메서드는")
+    class Describe_update {
+        @Nested
+        @DisplayName("인증 되었고 권한이 있을 때")
+        class Context_when_authorized_and_has_authority {
+            @Nested
+            @DisplayName("댓글이 존재하고 올바른 요청이 왔으며, 사용자가 작성한 댓글일 때")
+            class Context_when_reply_exists_and_valid_requests_and_same_user {
+                @BeforeEach
+                void setUp() {
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                    given(replyService.updateReply(eq(EXISTS_REPLY_ID),
+                            any(ReplyRequestData.class),
+                            eq(EXISTS_USER_ID))).will(invocation -> {
+                                ReplyRequestData replyRequestData = invocation.getArgument(1);
+                                return Reply.builder()
+                                        .id(EXISTS_REPLY_ID)
+                                        .userId(EXISTS_USER_ID)
+                                        .message(replyRequestData.getMessage())
+                                        .build();
+                            }
+                    );
+                }
+
+                @Test
+                @DisplayName("200과 수정된 댓글을 응답한다.")
+                void It_responds_200_and_updated_reply() throws Exception {
+                    mvc.perform(patch("/replies/" + EXISTS_REPLY_ID)
+                                    .accept(MediaType.APPLICATION_JSON_UTF8)
+                                    .content("{\"message\":\"이건 수정된 댓글\"}")
+                                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andDo(print())
+                            .andExpect(content().string(containsString("이건 수정된 댓글")))
+                            .andExpect(status().isOk());
+                }
+            }
+        }
     }
 }

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReplyCustomRepository {
-    Optional<Reply> findReviewById(Long id);
+    Optional<Reply> findReplyById(Long id);
 
     List<Reply> findAllByReviewId(Long id);
 

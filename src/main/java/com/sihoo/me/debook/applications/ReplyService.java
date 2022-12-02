@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 
 @Service
@@ -43,7 +44,11 @@ public class ReplyService {
     }
 
     public Reply getReplyById(Long id) {
-        return replyRepository.findReviewById(id)
+        return findReply(id);
+    }
+
+    private Reply findReply(Long id) {
+        return replyRepository.findReplyById(id)
                 .orElseThrow(() -> new CustomException("[ERROR] Reply not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
     }
 
@@ -61,5 +66,18 @@ public class ReplyService {
 
     public List<Reply> getMyReplies(Long userId) {
         return replyRepository.findAllByUserId(userId);
+    }
+
+    public Reply updateReply(Long id, ReplyRequestData replyRequestData, Long userId) {
+        Reply reply = findReply(id);
+
+        if(!Objects.equals(reply.getUserId(), userId)) {
+            throw new CustomException("[ERROR] No authorization for reply(Id: " + id + ", userId: " + userId + ")",
+                    HttpStatus.UNAUTHORIZED);
+        }
+
+        reply.changeMessage(mapper.map(replyRequestData, Reply.class));
+
+        return reply;
     }
 }

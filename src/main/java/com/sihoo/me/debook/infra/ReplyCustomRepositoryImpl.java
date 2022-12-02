@@ -20,7 +20,7 @@ public class ReplyCustomRepositoryImpl implements ReplyCustomRepository {
     }
 
     @Override
-    public Optional<Reply> findReviewById(Long id) {
+    public Optional<Reply> findReplyById(Long id) {
         return jpqlQueryFactory.selectFrom(reply)
                 .where(reply.id.eq(id))
                 .where(reply.isDeleted.eq(false))

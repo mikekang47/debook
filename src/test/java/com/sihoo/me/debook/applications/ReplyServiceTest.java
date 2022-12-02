@@ -118,7 +118,7 @@ class ReplyServiceTest {
                         .id(EXISTS_REPLY_ID)
                         .build();
 
-                given(replyRepository.findReviewById(EXISTS_REPLY_ID)).willReturn(Optional.of(reply));
+                given(replyRepository.findReplyById(EXISTS_REPLY_ID)).willReturn(Optional.of(reply));
             }
 
             @Test
@@ -135,7 +135,7 @@ class ReplyServiceTest {
         class Context_when_not_exists_review {
             @BeforeEach
             void setUp() {
-                given(replyRepository.findReviewById(NOT_EXISTS_REPLY_ID)).willReturn(Optional.empty());
+                given(replyRepository.findReplyById(NOT_EXISTS_REPLY_ID)).willReturn(Optional.empty());
             }
 
             @Test
@@ -220,6 +220,78 @@ class ReplyServiceTest {
                 List<Reply> replies = replyService.getMyReplies(EXISTS_USER_ID);
 
                 assertThat(replies).isEmpty();
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("updateReply 메서드는")
+    class Describe_updateReply {
+        @Nested
+        @DisplayName("댓글의 사용자 id와 현재 사용자 id가 같을 때")
+        class Context_when_same_user {
+            @BeforeEach
+            void setUp() {
+                Reply reply = Reply.builder()
+                        .id(EXISTS_REPLY_ID)
+                        .message("이건 수정전 댓글임")
+                        .userId(EXISTS_USER_ID)
+                        .build();
+
+                given(replyRepository.findReplyById(EXISTS_REPLY_ID)).willReturn(Optional.of(reply));
+            }
+
+            @Test
+            @DisplayName("수정된 댓글을 반환한다.")
+            void It_returns_updated_reply() {
+                ReplyRequestData replyRequestData = new ReplyRequestData("이거 수정된 댓글임.");
+                Reply reply = replyService.updateReply(EXISTS_REPLY_ID, replyRequestData, EXISTS_USER_ID);
+
+                assertThat(reply.getMessage()).isEqualTo("이거 수정된 댓글임.");
+                assertThat(reply.getUserId()).isEqualTo(EXISTS_USER_ID);
+            }
+        }
+        @Nested
+        @DisplayName("댓글의 사용자 id와 현재 사용자 id가 다를 때")
+        class Context_when_different_user {
+            @BeforeEach
+            void setUp() {
+                final Long DIFF_USER_ID = 10L;
+
+                Reply reply = Reply.builder()
+                        .id(EXISTS_REPLY_ID)
+                        .message("이건 수정전 댓글임")
+                        .userId(DIFF_USER_ID)
+                        .build();
+
+                given(replyRepository.findReplyById(EXISTS_REPLY_ID)).willReturn(Optional.of(reply));
+            }
+
+            @Test
+            @DisplayName("수정된 댓글을 반환한다.")
+            void It_returns_unauthorized_error() {
+                ReplyRequestData replyRequestData = new ReplyRequestData("이거 수정된 댓글임.");
+                assertThatThrownBy(() -> replyService.updateReply(EXISTS_REPLY_ID, replyRequestData, EXISTS_USER_ID))
+                        .hasMessageContaining("[ERROR] No authorization for reply")
+                        .isInstanceOf(CustomException.class);
+            }
+        }
+
+        @Nested
+        @DisplayName("댓글이 존재하지 않을 때")
+        class Context_when_not_exist_reply {
+            @BeforeEach
+            void setUp() {
+                given(replyRepository.findReplyById(EXISTS_REPLY_ID)).willReturn(Optional.empty());
+            }
+
+            @Test
+            @DisplayName("not found 에러를 반환한다.")
+            void It_returns_not_found_error() {
+                ReplyRequestData replyRequestData = new ReplyRequestData("이거 수정된 댓글임.");
+                assertThatThrownBy(() -> replyService.updateReply(EXISTS_REPLY_ID, replyRequestData, EXISTS_USER_ID))
+                        .hasMessageContaining("[ERROR] Reply not found")
+                        .isInstanceOf(CustomException.class);
             }
         }
     }

@@ -45,10 +45,21 @@ public class ReplyController {
         return replyService.getRepliesByReviewId(id);
     }
 
-    @GetMapping
+    @GetMapping("/myreplies")
     @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
     public List<Reply> getMyReplies(UserAuthentication userAuthentication) {
         Long userId = userAuthentication.getUserId();
         return replyService.getMyReplies(userId);
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
+    public Reply update(
+            @PathVariable Long id,
+            @RequestBody @Valid ReplyRequestData replyRequestData,
+            UserAuthentication userAuthentication
+    ) {
+        Long userId = userAuthentication.getUserId();
+        return replyService.updateReply(id, replyRequestData, userId);
     }
 }

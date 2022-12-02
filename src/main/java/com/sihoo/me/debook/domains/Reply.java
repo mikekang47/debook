@@ -46,8 +46,8 @@ public class Reply {
     private LocalDateTime updatedAt;
 
 
-    public void changeMessage(String message) {
-        this.message = message;
+    public void changeMessage(Reply reply) {
+        this.message = reply.message;
     }
 
     public void deleteReply() {
