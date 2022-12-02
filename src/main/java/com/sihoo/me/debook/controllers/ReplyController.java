@@ -44,4 +44,11 @@ public class ReplyController {
     public List<Reply> list(@PathVariable Long id) {
         return replyService.getRepliesByReviewId(id);
     }
+
+    @GetMapping
+    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
+    public List<Reply> getMyReplies(UserAuthentication userAuthentication) {
+        Long userId = userAuthentication.getUserId();
+        return replyService.getMyReplies(userId);
+    }
 }

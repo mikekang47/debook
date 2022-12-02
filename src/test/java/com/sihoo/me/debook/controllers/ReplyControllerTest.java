@@ -125,6 +125,7 @@ public class ReplyControllerTest {
 
                 given(replyService.getReplyById(EXISTS_REPLY_ID)).willReturn(reply);
             }
+
             @Test
             @DisplayName("200과 댓글을 응답한다.")
             void It_responds_200_and_reply() throws Exception {
@@ -132,5 +133,65 @@ public class ReplyControllerTest {
                         .andExpect(status().isOk());
             }
         }
+    }
+
+    @Nested
+    @DisplayName("getMyReplies 메서드는")
+    class Describe_getMyReplies {
+        @Nested
+        @DisplayName("인증되었고 권한이 있을때")
+        class Context_when_authorization_and_has_authority {
+            @Nested
+            @DisplayName("사용자 작성한 댓글이 존재할 때")
+            class Context_when_exists_reply {
+                @BeforeEach
+                void setUp() {
+                    Reply reply1 = Reply.builder()
+                            .userId(EXISTS_USER_ID)
+                            .message("첫번째 메시지")
+                            .build();
+                    Reply reply2 = Reply.builder()
+                            .userId(EXISTS_USER_ID)
+                            .message("두번째 메시지")
+                            .build();
+
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                    given(replyService.getMyReplies(EXISTS_USER_ID)).willReturn(List.of(reply1, reply2));
+                }
+
+                @Test
+                @DisplayName("200과 댓글을 모두 응답한다.")
+                void It_responds_200_and_replies() throws Exception {
+                    mvc.perform(get("/replies")
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isOk())
+                            .andDo(print());
+                }
+            }
+
+            @Nested
+            @DisplayName("사용자 작성한 댓글이 존재하지 않을 때")
+            class Context_when_not_exists_reply {
+                @BeforeEach
+                void setUp() {
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                    given(replyService.getMyReplies(EXISTS_USER_ID)).willReturn(List.of());
+                }
+
+                @Test
+                @DisplayName("200과 빈 댓글 리스트를 응답한다.")
+                void It_responds_200_and_empty_replies() throws Exception {
+                    mvc.perform(get("/replies")
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isOk())
+                            .andDo(print());
+                }
+            }
+        }
+
     }
 }

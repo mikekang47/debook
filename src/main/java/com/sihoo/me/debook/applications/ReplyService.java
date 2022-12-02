@@ -58,4 +58,8 @@ public class ReplyService {
             throw new CustomException("[ERROR] Review not found(Id: " + reviewId + ")", HttpStatus.NOT_FOUND);
         }
     }
+
+    public List<Reply> getMyReplies(Long userId) {
+        return replyRepository.findAllByUserId(userId);
+    }
 }

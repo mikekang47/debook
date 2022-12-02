@@ -175,4 +175,52 @@ class ReplyServiceTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("getMyReplies 메서드는")
+    class Describe_getMyReplies {
+        @Nested
+        @DisplayName("사용자가 작성한 댓글이 있을 때")
+        class Context_when_reply_exists {
+            @BeforeEach
+            void setUp() {
+                Reply reply1 = Reply.builder()
+                        .userId(EXISTS_USER_ID)
+                        .message("첫번째 메시지")
+                        .build();
+                Reply reply2 = Reply.builder()
+                        .userId(EXISTS_USER_ID)
+                        .message("두번째 메시지")
+                        .build();
+
+                given(replyRepository.findAllByUserId(EXISTS_USER_ID)).willReturn(List.of(reply1, reply2));
+            }
+
+            @Test
+            @DisplayName("댓글을 모두 반환한다.")
+            void It_returns_all_replies() {
+                List<Reply> replies = replyService.getMyReplies(EXISTS_USER_ID);
+
+                assertThat(replies).isNotEmpty();
+                assertThat(replies.get(0).getUserId()).isEqualTo(EXISTS_USER_ID);
+            }
+        }
+
+        @Nested
+        @DisplayName("사용자가 작성한 댓글이 없을 때")
+        class Context_when_reply_not_exists {
+            @BeforeEach
+            void setUp() {
+                given(replyRepository.findAllByUserId(EXISTS_USER_ID)).willReturn(List.of());
+            }
+
+            @Test
+            @DisplayName("빈 리스트를 반환한다.")
+            void It_returns_empty_list() {
+                List<Reply> replies = replyService.getMyReplies(EXISTS_USER_ID);
+
+                assertThat(replies).isEmpty();
+            }
+        }
+    }
 }

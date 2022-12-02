@@ -9,4 +9,6 @@ public interface ReplyCustomRepository {
     Optional<Reply> findReviewById(Long id);
 
     List<Reply> findAllByReviewId(Long id);
+
+    List<Reply> findAllByUserId(Long userId);
 }
