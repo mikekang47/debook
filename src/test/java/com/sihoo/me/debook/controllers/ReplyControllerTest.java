@@ -6,6 +6,7 @@ import com.sihoo.me.debook.domains.Reply;
 import com.sihoo.me.debook.domains.Role;
 import com.sihoo.me.debook.domains.RoleType;
 import com.sihoo.me.debook.dto.ReplyRequestData;
+import com.sihoo.me.debook.errors.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -231,6 +233,62 @@ public class ReplyControllerTest {
                             .andDo(print())
                             .andExpect(content().string(containsString("이건 수정된 댓글")))
                             .andExpect(status().isOk());
+                }
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("delete 메서드는")
+    class Describe_delete {
+        @Nested
+        @DisplayName("인증된 사용자이며 권한이 있을 때")
+        class Context_when_authenticated_and_has_authority {
+            @Nested
+            @DisplayName("댓글이 존재할 때")
+            class Context_when_reply_exists {
+                @BeforeEach
+                void setUp() {
+                    Reply reply = Reply.builder()
+                            .id(EXISTS_REPLY_ID)
+                            .userId(EXISTS_USER_ID)
+                            .isDeleted(true)
+                            .build();
+
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                    given(replyService.deleteReply(EXISTS_REPLY_ID, EXISTS_USER_ID)).willReturn(reply);
+                }
+
+                @Test
+                @DisplayName("204를 응답한다.")
+                void It_responds_204() throws Exception {
+                    mvc.perform(delete("/replies/" + EXISTS_REPLY_ID)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isNoContent());
+                }
+            }
+
+            @Nested
+            @DisplayName("댓글이 존재하지 않을 때")
+            class Context_when_reply_not_exists {
+                @BeforeEach
+                void setUp() {
+                    given(authenticationService.getRoles(EXISTS_USER_ID)).willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
+                    given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
+                    given(replyService.deleteReply(EXISTS_REPLY_ID, EXISTS_USER_ID)).willThrow(
+                            new CustomException("[ERROR] Reply not found(Id: " + EXISTS_REPLY_ID + ")", HttpStatus.NOT_FOUND)
+                    );
+                }
+
+                @Test
+                @DisplayName("204를 응답한다.")
+                void It_responds_204() throws Exception {
+                    mvc.perform(delete("/replies/" + EXISTS_REPLY_ID)
+                                    .header("Authorization", "Bearer " + EXISTS_TOKEN)
+                            )
+                            .andExpect(status().isNotFound());
                 }
             }
         }

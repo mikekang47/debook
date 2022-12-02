@@ -251,6 +251,7 @@ class ReplyServiceTest {
                 assertThat(reply.getUserId()).isEqualTo(EXISTS_USER_ID);
             }
         }
+
         @Nested
         @DisplayName("댓글의 사용자 id와 현재 사용자 id가 다를 때")
         class Context_when_different_user {
@@ -286,11 +287,79 @@ class ReplyServiceTest {
             }
 
             @Test
-            @DisplayName("not found 에러를 반환한다.")
-            void It_returns_not_found_error() {
+            @DisplayName("not found 에러를 던진다.")
+            void It_throws_not_found_error() {
                 ReplyRequestData replyRequestData = new ReplyRequestData("이거 수정된 댓글임.");
                 assertThatThrownBy(() -> replyService.updateReply(EXISTS_REPLY_ID, replyRequestData, EXISTS_USER_ID))
                         .hasMessageContaining("[ERROR] Reply not found")
+                        .isInstanceOf(CustomException.class);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("deleteReply 메서드는")
+    class Describe_deleteReply {
+        @BeforeEach
+        void setUp() {
+            Reply reply = Reply.builder()
+                    .id(EXISTS_REPLY_ID)
+                    .userId(EXISTS_USER_ID)
+                    .build();
+
+            given(replyRepository.findReplyById(EXISTS_REPLY_ID)).willReturn(Optional.of(reply));
+        }
+
+        @Nested
+        @DisplayName("댓글이 존재하고 작성한 사용자가 같을 때")
+        class Context_when_reply_exists_and_same_user {
+            @Test
+            @DisplayName("댓글의 상태를 변경시키고 댓글을 리턴한다.")
+            void It_returns_reply_and_change_status() {
+                Reply reply = replyService.deleteReply(EXISTS_REPLY_ID, EXISTS_USER_ID);
+
+                assertThat(reply.isDeleted()).isTrue();
+            }
+        }
+
+        @Nested
+        @DisplayName("댓글이 존재하지 않는다면")
+        class Context_when_reply_not_exists {
+            @BeforeEach
+            void setUp() {
+                given(replyRepository.findReplyById(EXISTS_REPLY_ID)).willReturn(Optional.empty());
+            }
+
+            @Test
+            @DisplayName("not found 에러를 던진다.")
+            void It_throws_not_found_error() {
+                assertThatThrownBy(() -> replyService.deleteReply(EXISTS_REPLY_ID, EXISTS_USER_ID))
+                        .hasMessageContaining("[ERROR] Reply not found")
+                        .isInstanceOf(CustomException.class);
+
+
+            }
+        }
+
+        @Nested
+        @DisplayName("댓글 작성자가 다르다면")
+        class Context_when_different_user {
+            @BeforeEach
+            void setUp() {
+                Reply reply = Reply.builder()
+                        .id(EXISTS_REPLY_ID)
+                        .userId(EXISTS_USER_ID)
+                        .build();
+
+                given(replyRepository.findReplyById(EXISTS_REPLY_ID)).willReturn(Optional.of(reply));
+            }
+
+            @Test
+            @DisplayName("unauthorized 에러를 던진다.")
+            void It_throws_unauthorized_error() {
+                final Long differentUserId = 12L;
+                assertThatThrownBy(() -> replyService.deleteReply(EXISTS_REPLY_ID, differentUserId))
+                        .hasMessageContaining("[ERROR] No authorization for reply")
                         .isInstanceOf(CustomException.class);
             }
         }

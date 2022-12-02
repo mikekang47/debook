@@ -62,4 +62,15 @@ public class ReplyController {
         Long userId = userAuthentication.getUserId();
         return replyService.updateReply(id, replyRequestData, userId);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
+    public void delete(
+            @PathVariable Long id,
+            UserAuthentication userAuthentication
+    ) {
+        Long userId = userAuthentication.getUserId();
+        replyService.deleteReply(id, userId);
+    }
 }
