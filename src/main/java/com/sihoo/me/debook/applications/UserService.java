@@ -103,4 +103,11 @@ public class UserService {
                     ", Current User Id: " + userId + ")", HttpStatus.UNAUTHORIZED);
         }
     }
+
+    public User increaseReplyCount(Long userId) {
+        User user = findUser(userId);
+        user.increaseReviewCount();
+
+        return user;
+    }
 }

@@ -8,4 +8,6 @@ public interface ReviewCustomRepository {
     List<Review> findReviewByDate(String keyword);
 
     List<Review> findReviewByCorrectness(String keyword);
+
+    boolean existsReviewById(Long reviewId);
 }
