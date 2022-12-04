@@ -10,4 +10,6 @@ public interface ReviewCustomRepository {
     List<Review> findReviewByCorrectness(String keyword);
 
     boolean existsReviewById(Long reviewId);
+
+    List<Review> findAllByBookId(Long bookId);
 }

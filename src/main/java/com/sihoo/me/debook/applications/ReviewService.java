@@ -81,4 +81,8 @@ public class ReviewService {
     public boolean existsReview(Long reviewId) {
         return reviewRepository.existsReviewById(reviewId);
     }
+
+    public List<Review> getReviewsByBookId(Long bookId) {
+        return reviewRepository.findAllByBookId(bookId);
+    }
 }
