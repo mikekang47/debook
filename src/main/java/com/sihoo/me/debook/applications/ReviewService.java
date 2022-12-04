@@ -27,7 +27,7 @@ public class ReviewService {
 
     @Transactional
     public Review createReview(Long userId, ReviewRequestData reviewRequestData) {
-        Review review = reviewRepository.save(reviewRequestData.toEntity(userId));
+        Review review = reviewRepository.save(mapper.map(reviewRequestData,Review.class));
         userService.increaseReviewCount(userId);
 
         return review;

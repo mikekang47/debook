@@ -87,6 +87,7 @@ class ReviewControllerTest {
                                 .userId(EXISTS_USER_ID)
                                 .title(reviewRequestData.getTitle())
                                 .body(reviewRequestData.getBody())
+                                .bookId(reviewRequestData.getBookId())
                                 .build();
                     });
                 }
@@ -97,9 +98,10 @@ class ReviewControllerTest {
                     mvc.perform(post("/reviews")
                                     .accept(MediaType.APPLICATION_JSON)
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content("{\"title\":\"good book\", \"body\": \"It was fantastic book.\"}")
+                                    .content("{\"title\":\"good book\", \"body\": \"It was fantastic book.\", \"bookId\": 7}")
                                     .header("Authorization", "Bearer " + EXISTS_TOKEN)
                             )
+                            .andDo(print())
                             .andExpect(status().isCreated());
                 }
             }
@@ -206,6 +208,7 @@ class ReviewControllerTest {
                                     .userId(EXISTS_USER_ID)
                                     .title(reviewRequestData.getTitle())
                                     .body(reviewRequestData.getBody())
+                                    .bookId(reviewRequestData.getBookId())
                                     .build();
                         });
             }
@@ -216,7 +219,7 @@ class ReviewControllerTest {
                 mvc.perform(patch("/reviews/" + EXISTS_REVIEW_ID)
                                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                                 .accept(MediaType.APPLICATION_JSON_UTF8)
-                                .content("{\"title\":\"수정된 타이틀\", \"body\":\"수정된 바디입니다. 10글자 채우기\"}")
+                                .content("{\"title\":\"수정된 타이틀\", \"body\":\"수정된 바디입니다. 10글자 채우기\", \"bookId\":7}")
                                 .header("Authorization", "Bearer " + EXISTS_TOKEN)
                         )
                         .andDo(print())
