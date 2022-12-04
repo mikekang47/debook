@@ -1,8 +1,8 @@
 package com.sihoo.me.debook.dto;
 
 import com.github.dozermapper.core.Mapping;
-import com.sihoo.me.debook.domains.Review;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +12,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @Getter
 @NoArgsConstructor
+@Builder
 public class ReviewRequestData {
     @NotEmpty
     @Mapping("title")
@@ -22,11 +23,9 @@ public class ReviewRequestData {
     @Mapping("body")
     private String body;
 
-    public Review toEntity(Long userId) {
-        return Review.builder()
-                .title(this.title)
-                .body(this.body)
-                .userId(userId)
-                .build();
-    }
+    @Mapping("bookId")
+    private long bookId;
+
+    @Mapping("userId")
+    private long userId;
 }

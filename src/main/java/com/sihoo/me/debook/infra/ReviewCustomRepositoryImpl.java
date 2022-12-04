@@ -47,4 +47,13 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
 
         return result != null;
     }
+
+    @Override
+    public List<Review> findAllByBookId(Long bookId) {
+        return jpaQueryFactory.selectFrom(review)
+                .where(review.bookId.eq(bookId))
+                .stream()
+                .sorted(Comparator.comparing(Review::getCreatedAt).reversed())
+                .collect(Collectors.toList());
+    }
 }

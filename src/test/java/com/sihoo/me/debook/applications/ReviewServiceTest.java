@@ -74,11 +74,12 @@ class ReviewServiceTest {
 
             @Test
             void It_returns_review() {
-                ReviewRequestData reviewRequestData = new ReviewRequestData("좋은 책", "좋은 책이네요.");
+                ReviewRequestData reviewRequestData = new ReviewRequestData("좋은 책", "좋은 책이네요.", 7L, EXISTS_USER_ID);
                 Review review = reviewService.createReview(EXISTS_USER_ID, reviewRequestData);
 
                 assertThat(review.getTitle()).isEqualTo("좋은 책");
                 assertThat(review.getBody()).isEqualTo("좋은 책이네요.");
+                assertThat(review.getUserId()).isEqualTo(EXISTS_USER_ID);
             }
         }
     }
@@ -192,13 +193,14 @@ class ReviewServiceTest {
             @Test
             @DisplayName("업데이트된 리뷰를 반환한다.")
             void It_returns_updated_review() {
-                ReviewRequestData reviewRequestData = new ReviewRequestData("새로 작성된 타이틀", "업데이트된 본문입니다. 10글자가 넘습니다.");
+                ReviewRequestData reviewRequestData = new ReviewRequestData("새로 작성된 타이틀", "업데이트된 본문입니다. 10글자가 넘습니다.", 7L, EXISTS_USER_ID);
 
                 Review review = reviewService.updateReview(EXISTS_REVIEW_ID, reviewRequestData, EXISTS_USER_ID);
 
                 assertThat(review.getId()).isEqualTo(EXISTS_REVIEW_ID);
                 assertThat(review.getTitle()).isEqualTo("새로 작성된 타이틀");
                 assertThat(review.getBody()).contains("업데이트");
+                assertThat(review.getUserId()).isEqualTo(EXISTS_USER_ID);
             }
         }
     }

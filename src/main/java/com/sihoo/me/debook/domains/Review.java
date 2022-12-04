@@ -24,6 +24,9 @@ public class Review {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(name= "book_id")
+    private Long bookId;
+
     @Column(name = "title")
     private String title;
 

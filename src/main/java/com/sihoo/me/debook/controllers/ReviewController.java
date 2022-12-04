@@ -41,6 +41,11 @@ public class ReviewController {
         return reviewService.getReviewByKeyword(keyword, SortType.from(sortType).getType());
     }
 
+    @GetMapping("/bookReview/{bookId}")
+    public List<Review> listByBookId(@PathVariable Long bookId) {
+        return reviewService.getReviewsByBookId(bookId);
+    }
+
     @PatchMapping("/{id}")
     @PreAuthorize("isAuthenticated() and (hasAuthority('USER') or hasAuthority('ADMIN'))")
     public Review update(@PathVariable Long id,
