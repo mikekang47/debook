@@ -1,0 +1,12 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "sihookang47/Debook:latest"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "8080",
+      "HostPort" : "80"
+    }
+  ]
+}

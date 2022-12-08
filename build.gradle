@@ -24,7 +24,7 @@ jib {
 }
 
 group = 'com.sihoo.me'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 sourceCompatibility = '11'
 
 configurations {
@@ -57,6 +57,9 @@ dependencies {
 	// H2
 	runtimeOnly 'com.h2database:h2'
 
+	// MySQL
+	runtimeOnly 'mysql:mysql-connector-java'
+
 	// Spring boot starter
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
@@ -78,7 +81,10 @@ dependencies {
 	implementation 'com.querydsl:querydsl-apt:5.0.0'
 
 	// DozerMapper
-    implementation 'com.github.dozermapper:dozer-core:6.4.0'
+    implementation 'com.github.dozermapper:dozer-core:6.5.2'
+
+	// jasyptt
+	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.4'
 }
 
 tasks.named('test') {
