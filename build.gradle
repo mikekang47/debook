@@ -21,9 +21,6 @@ jib {
 		image = "sihookang47/debook"
 		tags = ["latest"]
 	}
-	container {
-		entrypoint = ["java", "-Dspring.profiles.active=cloud", "-jar". "/debook"-]
-	}
 }
 
 group = 'com.sihoo.me'
