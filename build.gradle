@@ -79,6 +79,9 @@ dependencies {
 
 	// DozerMapper
     implementation 'com.github.dozermapper:dozer-core:6.4.0'
+
+	// jasyptt
+	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.4'
 }
 
 tasks.named('test') {
