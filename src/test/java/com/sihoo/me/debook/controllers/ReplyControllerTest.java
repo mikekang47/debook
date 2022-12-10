@@ -164,7 +164,7 @@ public class ReplyControllerTest {
                 @Test
                 @DisplayName("200과 댓글을 모두 응답한다.")
                 void It_responds_200_and_replies() throws Exception {
-                    mvc.perform(get("/replies")
+                    mvc.perform(get("/replies/myreplies")
                                     .header("Authorization", "Bearer " + EXISTS_TOKEN)
                             )
                             .andExpect(status().isOk())
@@ -185,7 +185,7 @@ public class ReplyControllerTest {
                 @Test
                 @DisplayName("200과 빈 댓글 리스트를 응답한다.")
                 void It_responds_200_and_empty_replies() throws Exception {
-                    mvc.perform(get("/replies")
+                    mvc.perform(get("/replies/myreplies")
                                     .header("Authorization", "Bearer " + EXISTS_TOKEN)
                             )
                             .andExpect(status().isOk())
