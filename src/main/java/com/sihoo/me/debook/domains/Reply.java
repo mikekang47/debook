@@ -15,7 +15,10 @@ import java.time.LocalDateTime;
 @Entity
 @Builder
 @Getter
-@Table(name = "reply")
+@Table(name = "reply", indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_review_id", columnList = "review_id")
+})
 public class Reply {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
