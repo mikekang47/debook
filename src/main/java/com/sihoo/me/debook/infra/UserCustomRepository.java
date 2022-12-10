@@ -13,4 +13,6 @@ public interface UserCustomRepository {
     List<User> findUsers();
 
     Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

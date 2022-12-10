@@ -51,4 +51,15 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
                 .stream()
                 .findFirst();
     }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        Integer result = jpaQueryFactory.selectOne()
+                .from(user)
+                .where(user.email.eq(email))
+                .where(user.isDeleted.eq(false))
+                .fetchFirst();
+
+        return result != null;
+    }
 }
