@@ -15,10 +15,10 @@ spring:
     show-sql: true
 
 jwt:
-  secret: ${{secrets.JWT_SECRET}}
+  secret: ${JWT_SECRET}
 
 naver:
   openapi:
     client:
-      id: ${{secrets.CLIENT_ID}}
-      secret: ${{secrets.CLIENT_SECRET}}
+      id: ${CLIENT_ID}
+      secret: ${secrets.CLIENT_SECRET}
