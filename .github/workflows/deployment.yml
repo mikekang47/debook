@@ -1,6 +1,6 @@
 name: deploy
 
-on: # main branch에 push를 할 때 동작합니다!
+on:
   push:
     branches: [ main ]
 
@@ -9,7 +9,7 @@ on: # main branch에 push를 할 때 동작합니다!
 env:
   # AWS & Elastic Bean Stalk
   AWS_REGION: ap-northeast-2
-  EB_ENVIRONMENT_NAME: Debook-env-1
+  EB_ENVIRONMENT_NAME: Debook-env
   EB_APPLICATION_NAME: Debook
   EB_DEPLOYMENT_PACKAGE: ./Docker.aws.json
 
@@ -35,7 +35,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push to Dockerhub
-        run: ./gradlew jib -Djib.container.environment=SPRING_PROFILES_ACTIVE=cloud,SECRET=${{secrets.SECRET}}
+        run: ./gradlew jib -Djib.container.environment=SPRING_PROFILES_ACTIVE=cloud,SECRET=${{secrets.SECRET}},URL=${{secrets.URL}},CLIENT_ID=${{CLIENT_ID}},CLIENT_SECRET=${{CLIENT_SECRET}},JWT_SECRET=${{JWT_SECRET}},USERNAME=${{USERNAME}},PASSWORD=${{PASSWORD}}
 
       - name: Beanstalk Deploy
         uses: einaregilsson/beanstalk-deploy@ebe3476a4ce991d54336935e75e78dd9d86f9408
