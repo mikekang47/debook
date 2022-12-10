@@ -37,6 +37,11 @@ public class UserController {
         return userService.getUserByNickName(nickName);
     }
 
+    @GetMapping("/validate/{email}")
+    public boolean validateEmail(@PathVariable String email) {
+        return userService.existsUser(email);
+    }
+
     @GetMapping
     public List<User> list() {
         return userService.getUsers();

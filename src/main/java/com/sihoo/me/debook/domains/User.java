@@ -10,7 +10,10 @@ import javax.persistence.*;
 @Entity
 @Builder
 @Getter
-@Table(name = "user")
+@Table(name = "user", indexes = {
+        @Index(name = "idx_nickname", columnList = "nick_name"),
+        @Index(name = "idx_email", columnList = "email")
+})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
