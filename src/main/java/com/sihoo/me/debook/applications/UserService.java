@@ -106,8 +106,12 @@ public class UserService {
 
     public User increaseReplyCount(Long userId) {
         User user = findUser(userId);
-        user.increaseReviewCount();
+        user.increaseReplyCount();
 
         return user;
+    }
+
+    public boolean existsUser(String email) {
+        return userRepository.existsByEmail(email);
     }
 }
