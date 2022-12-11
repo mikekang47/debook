@@ -45,6 +45,7 @@ public class ReviewService {
 
     }
 
+    @Transactional
     public Review updateReview(Long id, ReviewRequestData reviewRequestData, Long userId) {
         Review review = findReview(id);
 
@@ -55,6 +56,7 @@ public class ReviewService {
         return review;
     }
 
+    @Transactional
     public Review deleteReview(Long id, Long userId) {
         Review review = findReview(id);
 
