@@ -16,6 +16,7 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
+    @Transactional
     public Role createRole(User user) {
         Role role = Role.builder()
                 .userId(user.getId())

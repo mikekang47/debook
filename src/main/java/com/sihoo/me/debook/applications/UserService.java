@@ -9,7 +9,6 @@ import com.sihoo.me.debook.infra.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -32,7 +31,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional
     public User createUser(UserRequestData userRequestData) {
         User user = userRepository.save(userRequestData.toEntity());
 
@@ -54,7 +53,7 @@ public class UserService {
         return userRepository.findUsers();
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional
     public User updateUser(Long id, UserUpdateRequest userUpdateRequest, Long userId) {
         authorize(id, userId);
 
@@ -65,6 +64,7 @@ public class UserService {
         return user;
     }
 
+    @Transactional
     public User deleteUser(Long id, Long userId) {
         authorize(id, userId);
 
