@@ -35,7 +35,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push to Dockerhub
-        run: ./gradlew jib -Djib.container.environment=SPRING_PROFILES_ACTIVE=cloud,SECRET=${{secrets.SECRET}},URL=${{secrets.URL}},CLIENT_ID=${{secrets.CLIENT_ID}},CLIENT_SECRET=${{secrets.CLIENT_SECRET}},JWT_SECRET=${{secrets.JWT_SECRET}},USERNAME=${{secrets.USERNAME}},PASSWORD=${{secrets.PASSWORD}}
+        run: ./gradlew jib -Djib.container.environment=SPRING_PROFILES_ACTIVE=cloud,URL=${{secrets.URL}},CLIENT_ID=${{secrets.CLIENT_ID}},CLIENT_SECRET=${{secrets.CLIENT_SECRET}},JWT_SECRET=${{secrets.JWT_SECRET}},USERNAME=${{secrets.USERNAME}},PASSWORD=${{secrets.PASSWORD}}
 
       - name: Beanstalk Deploy
         uses: einaregilsson/beanstalk-deploy@ebe3476a4ce991d54336935e75e78dd9d86f9408
