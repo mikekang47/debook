@@ -30,6 +30,7 @@ jobs:
       - name: Setup and execute Gradle 'test' task
         uses: gradle/gradle-build-action@v2
         env:
+          SPRING_PROFILES_ACTIVE: cloud
           JWT_SECRET: ${{secrets.JWT_SECRET}}
           CLIENT_SECRET: ${{secrets.CLIENT_SECRET}}
           CLIENT_ID: ${{secrets.CLIENT_ID}}
