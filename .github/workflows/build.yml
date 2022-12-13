@@ -19,8 +19,19 @@ jobs:
           distribution: 'adopt'
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
-        
+
+      - name: SetUp MySQL
+        uses: samin/mysql-action@v1
+        with:
+          mysql database: ${{secrets.db_name}}
+          mysql user: ${{secrets.USERNAME}}
+          mysql password: ${{secrets.PASSWORD}}
+
       - name: Setup and execute Gradle 'test' task
         uses: gradle/gradle-build-action@v2
+        env:
+          JWT_SECRET: ${{secrets.JWT_SECRET}}
+          CLIENT_SECRET: ${{secrets:CLIENT_SECRET}}
+          CLIENT_ID: ${{secrets.CLIENT_ID}}
         with:
           arguments: test
