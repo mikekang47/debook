@@ -2,7 +2,7 @@ name: Java CI with Gradle
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
 
 permissions:
   contents: read
@@ -19,4 +19,4 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - run: ./gradlew build -x test
+      - run: ./gradlew build -Dspring.profiles.active=cloud,URL=${{secrets.URL}},CLIENT_ID=${{secrets.CLIENT_ID}},CLIENT_SECRET=${{secrets.CLIENT_SECRET}},JWT_SECRET=${{secrets.JWT_SECRET}},USERNAME=${{secrets.USERNAME}},PASSWORD=${{secrets.PASSWORD}}
