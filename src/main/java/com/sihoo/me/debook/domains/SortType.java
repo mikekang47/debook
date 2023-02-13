@@ -1,11 +1,10 @@
 package com.sihoo.me.debook.domains;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.sihoo.me.debook.errors.CustomException;
-import org.springframework.http.HttpStatus;
+import com.sihoo.me.debook.errors.SortTypeNotFoundException;
 
 public enum SortType {
-    date("date"), sim("sim");
+    DATE("date"), SIM("sim");
 
     private final String type;
 
@@ -24,7 +23,7 @@ public enum SortType {
                 return s;
             }
         }
-        throw new CustomException("[ERROR] There is no type lie request sort type(Type: " + type + ")", HttpStatus.NOT_FOUND);
+        throw new SortTypeNotFoundException(type);
 
     }
 }

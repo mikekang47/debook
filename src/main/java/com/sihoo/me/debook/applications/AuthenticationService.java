@@ -1,17 +1,19 @@
 package com.sihoo.me.debook.applications;
 
-import com.sihoo.me.debook.domains.Role;
-import com.sihoo.me.debook.domains.User;
-import com.sihoo.me.debook.errors.CustomException;
-import com.sihoo.me.debook.infra.RoleRepository;
-import com.sihoo.me.debook.infra.UserRepository;
-import com.sihoo.me.debook.utils.JwtUtil;
-import io.jsonwebtoken.Claims;
-import org.springframework.http.HttpStatus;
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.sihoo.me.debook.domains.Role;
+import com.sihoo.me.debook.domains.User;
+import com.sihoo.me.debook.errors.PasswordNotMatchException;
+import com.sihoo.me.debook.errors.UserNotFoundException;
+import com.sihoo.me.debook.infra.RoleRepository;
+import com.sihoo.me.debook.infra.UserRepository;
+import com.sihoo.me.debook.utils.JwtUtil;
+
+import io.jsonwebtoken.Claims;
 
 @Service
 public class AuthenticationService {
@@ -30,13 +32,12 @@ public class AuthenticationService {
 
     public String login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException("User not found(Email: " + email + ")",
-                        HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(email));
 
         boolean authentication = user.authenticate(password, passwordEncoder);
 
         if (!authentication) {
-            throw new CustomException("Login failed. Password doesn't match (Email: " + email + ")", HttpStatus.BAD_REQUEST);
+            throw new PasswordNotMatchException(email);
         }
 
         return jwtUtil.encode(user.getId());

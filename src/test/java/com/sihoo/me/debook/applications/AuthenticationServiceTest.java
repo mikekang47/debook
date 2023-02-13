@@ -1,24 +1,23 @@
 package com.sihoo.me.debook.applications;
 
-import com.sihoo.me.debook.domains.User;
-import com.sihoo.me.debook.errors.CustomException;
-import com.sihoo.me.debook.infra.RoleRepository;
-import com.sihoo.me.debook.infra.UserRepository;
-import com.sihoo.me.debook.utils.JwtUtil;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
+
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
+import com.sihoo.me.debook.domains.User;
+import com.sihoo.me.debook.errors.CustomException;
+import com.sihoo.me.debook.errors.UserNotFoundException;
+import com.sihoo.me.debook.infra.RoleRepository;
+import com.sihoo.me.debook.infra.UserRepository;
+import com.sihoo.me.debook.utils.JwtUtil;
 
 class AuthenticationServiceTest {
     private static final Long EXISTS_ID = 1L;
@@ -76,8 +75,7 @@ class AuthenticationServiceTest {
             @BeforeEach
             void setUp() {
                 given(userRepository.findByEmail(NOT_EXISTS_EMAIL))
-                        .willThrow(new CustomException("User not found(Email: " + NOT_EXISTS_EMAIL + ")",
-                                HttpStatus.NOT_FOUND));
+                        .willThrow(new UserNotFoundException(NOT_EXISTS_EMAIL));
             }
 
             @Test
@@ -109,7 +107,7 @@ class AuthenticationServiceTest {
             @DisplayName("비밀번호 에러를 던진다.")
             void It_throws_login_fail_exception() {
                 assertThatThrownBy(() -> authenticationService.login(EXISTS_EMAIL, WRONG_PASSWORD))
-                        .hasMessageContaining("Login failed. Password doesn't match")
+                        .hasMessageContaining("[ERROR] Password not match")
                         .isInstanceOf(CustomException.class);
             }
         }

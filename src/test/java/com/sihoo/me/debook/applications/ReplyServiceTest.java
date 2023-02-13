@@ -76,7 +76,7 @@ class ReplyServiceTest {
             }
 
             @Test
-            @DisplayName("생성된 리뷰를 반환한다.")
+            @DisplayName("생성된 댓글을 반환한다.")
             void It_returns_reply() {
                 ReplyRequestData replyRequestData = new ReplyRequestData("이거 좋은 책입니까?");
                 Reply reply = replyService.createReply(replyRequestData, EXISTS_REVIEW_ID, NEW_REPLY_ID, EXISTS_USER_ID);
@@ -273,7 +273,7 @@ class ReplyServiceTest {
             void It_returns_unauthorized_error() {
                 ReplyRequestData replyRequestData = new ReplyRequestData("이거 수정된 댓글임.");
                 assertThatThrownBy(() -> replyService.updateReply(EXISTS_REPLY_ID, replyRequestData, EXISTS_USER_ID))
-                        .hasMessageContaining("[ERROR] No authorization for reply")
+                        .hasMessageContaining("[ERROR] No authority for reply")
                         .isInstanceOf(CustomException.class);
             }
         }
@@ -359,7 +359,7 @@ class ReplyServiceTest {
             void It_throws_unauthorized_error() {
                 final Long differentUserId = 12L;
                 assertThatThrownBy(() -> replyService.deleteReply(EXISTS_REPLY_ID, differentUserId))
-                        .hasMessageContaining("[ERROR] No authorization for reply")
+                        .hasMessageContaining("[ERROR] No authority for reply")
                         .isInstanceOf(CustomException.class);
             }
         }
