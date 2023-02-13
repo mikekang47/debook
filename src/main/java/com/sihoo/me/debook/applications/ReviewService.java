@@ -1,16 +1,17 @@
 package com.sihoo.me.debook.applications;
 
-import com.github.dozermapper.core.Mapper;
-import com.sihoo.me.debook.domains.Review;
-import com.sihoo.me.debook.dto.ReviewRequestData;
-import com.sihoo.me.debook.errors.CustomException;
-import com.sihoo.me.debook.infra.ReviewRepository;
-import org.springframework.http.HttpStatus;
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
+import com.github.dozermapper.core.Mapper;
+import com.sihoo.me.debook.domains.Review;
+import com.sihoo.me.debook.dto.ReviewRequestData;
+import com.sihoo.me.debook.errors.NoAuthorityReviewException;
+import com.sihoo.me.debook.errors.ReviewNotFoundException;
+import com.sihoo.me.debook.infra.ReviewRepository;
 
 @Service
 @Transactional(readOnly = true)
@@ -71,12 +72,12 @@ public class ReviewService {
 
     private Review findReview(Long id) {
         return reviewRepository.findById(id)
-                .orElseThrow(() -> new CustomException("[ERROR] Review not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ReviewNotFoundException(id));
     }
 
     private static void authorize(Long userId, Review review) {
         if (!Objects.equals(userId, review.getUserId())) {
-            throw new CustomException("[ERROR] No authorization for review(UserId: " + userId + ")", HttpStatus.UNAUTHORIZED);
+            throw new NoAuthorityReviewException(userId);
         }
     }
 

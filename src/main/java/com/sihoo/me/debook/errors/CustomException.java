@@ -1,16 +1,13 @@
 package com.sihoo.me.debook.errors;
 
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
 public class CustomException extends RuntimeException {
-    @Getter
-    private final HttpStatus status;
+	@Getter
+	private final ErrorCode errorCode;
 
-    // TODO
-    // ErroraAdice 만들기
-    public CustomException(String message, HttpStatus status) {
-        super(message);
-        this.status = status;
-    }
+	public CustomException(ErrorCode errorCode) {
+		super(errorCode.getErrorMessage());
+		this.errorCode = errorCode;
+	}
 }

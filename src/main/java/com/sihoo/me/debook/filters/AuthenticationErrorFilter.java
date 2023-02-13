@@ -19,7 +19,7 @@ public class AuthenticationErrorFilter extends HttpFilter {
         try {
             chain.doFilter(request, response);
         } catch (CustomException e) {
-            response.sendError(e.getStatus().value());
+            response.sendError(e.getErrorCode().getStatus().value());
         }
     }
 }

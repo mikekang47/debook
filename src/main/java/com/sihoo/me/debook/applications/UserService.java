@@ -1,18 +1,19 @@
 package com.sihoo.me.debook.applications;
 
-import com.github.dozermapper.core.Mapper;
-import com.sihoo.me.debook.domains.User;
-import com.sihoo.me.debook.dto.UserRequestData;
-import com.sihoo.me.debook.dto.UserUpdateRequest;
-import com.sihoo.me.debook.errors.CustomException;
-import com.sihoo.me.debook.infra.UserRepository;
-import org.springframework.http.HttpStatus;
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
+import com.github.dozermapper.core.Mapper;
+import com.sihoo.me.debook.domains.User;
+import com.sihoo.me.debook.dto.UserRequestData;
+import com.sihoo.me.debook.dto.UserUpdateRequest;
+import com.sihoo.me.debook.errors.UnauthorizedException;
+import com.sihoo.me.debook.errors.UserNotFoundException;
+import com.sihoo.me.debook.infra.UserRepository;
 
 
 @Service
@@ -94,13 +95,12 @@ public class UserService {
 
     private User findUser(Long id) {
         return userRepository.findUserById(id)
-                .orElseThrow(() -> new CustomException("[ERROR] User not found(Id: " + id + ")", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     private static void authorize(Long id, Long userId) {
         if (!Objects.equals(id, userId)) {
-            throw new CustomException("[ERROR] No authorization for user(UserId: " + id +
-                    ", Current User Id: " + userId + ")", HttpStatus.UNAUTHORIZED);
+            throw new UnauthorizedException(userId);
         }
     }
 
