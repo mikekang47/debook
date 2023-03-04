@@ -1,5 +1,26 @@
 package com.sihoo.me.debook.controllers;
 
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
 import com.sihoo.me.debook.applications.AuthenticationService;
 import com.sihoo.me.debook.applications.ReviewService;
 import com.sihoo.me.debook.applications.UserService;
@@ -8,29 +29,7 @@ import com.sihoo.me.debook.domains.Role;
 import com.sihoo.me.debook.domains.RoleType;
 import com.sihoo.me.debook.domains.User;
 import com.sihoo.me.debook.dto.ReviewRequestData;
-import com.sihoo.me.debook.errors.CustomException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.sihoo.me.debook.errors.ReviewNotFoundException;
 
 @WebMvcTest(ReviewController.class)
 class ReviewControllerTest {
@@ -141,7 +140,7 @@ class ReviewControllerTest {
         class Context_when_not_exists_review {
             @BeforeEach
             void setUp() {
-                given(reviewService.getReviewById(NOT_EXISTS_REVIEW_ID)).willThrow(new CustomException("[ERROR] Review not found", HttpStatus.NOT_FOUND));
+                given(reviewService.getReviewById(NOT_EXISTS_REVIEW_ID)).willThrow(new ReviewNotFoundException(NOT_EXISTS_REVIEW_ID));
             }
 
             @Test

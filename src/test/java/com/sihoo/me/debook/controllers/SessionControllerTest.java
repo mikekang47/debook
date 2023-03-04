@@ -1,7 +1,10 @@
 package com.sihoo.me.debook.controllers;
 
-import com.sihoo.me.debook.applications.AuthenticationService;
-import com.sihoo.me.debook.errors.CustomException;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,15 +12,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.sihoo.me.debook.applications.AuthenticationService;
+import com.sihoo.me.debook.errors.PasswordNotMatchException;
+import com.sihoo.me.debook.errors.UserNotFoundException;
 
 @WebMvcTest(SessionController.class)
 class SessionControllerTest {
@@ -75,17 +75,18 @@ class SessionControllerTest {
             @BeforeEach
             void setUp() {
                 given(authenticationService.login(NOT_EXISTS_EMAIL, VALID_PASSWORD)).willThrow(
-                        new CustomException("Login failed. User not found(Email: " + NOT_EXISTS_EMAIL + ")", HttpStatus.BAD_REQUEST)
+                        new UserNotFoundException(NOT_EXISTS_EMAIL)
                 );
             }
 
             @Test
+            @DisplayName("404에러를 반환한다.")
             void It_responds_400() throws Exception {
                 mvc.perform(post("/session")
                                 .content("{\"email\":\"notexists@email.com\", \"password\" : \"123456789123\"}")
                                 .contentType(MediaType.APPLICATION_JSON)
                         )
-                        .andExpect(status().isBadRequest());
+                        .andExpect(status().isNotFound());
             }
         }
 
@@ -95,7 +96,7 @@ class SessionControllerTest {
             @BeforeEach
             void setUp() {
                 given(authenticationService.login(EXISTS_EMAIL, WRONG_PASSWORD)).willThrow(
-                        new CustomException("Login failed. Password doesn't match (Email: " + EXISTS_EMAIL + ")", HttpStatus.BAD_REQUEST)
+                        new PasswordNotMatchException(EXISTS_EMAIL)
                 );
             }
 

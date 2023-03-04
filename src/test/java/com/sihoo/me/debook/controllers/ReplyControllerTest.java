@@ -1,12 +1,15 @@
 package com.sihoo.me.debook.controllers;
 
-import com.sihoo.me.debook.applications.AuthenticationService;
-import com.sihoo.me.debook.applications.ReplyService;
-import com.sihoo.me.debook.domains.Reply;
-import com.sihoo.me.debook.domains.Role;
-import com.sihoo.me.debook.domains.RoleType;
-import com.sihoo.me.debook.dto.ReplyRequestData;
-import com.sihoo.me.debook.errors.CustomException;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,25 +17,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-
-import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.sihoo.me.debook.applications.AuthenticationService;
+import com.sihoo.me.debook.applications.ReplyService;
+import com.sihoo.me.debook.domains.Reply;
+import com.sihoo.me.debook.domains.Role;
+import com.sihoo.me.debook.domains.RoleType;
+import com.sihoo.me.debook.dto.ReplyRequestData;
+import com.sihoo.me.debook.errors.ReplyNotFoundException;
 
 @WebMvcTest(ReplyController.class)
 public class ReplyControllerTest {
     private static final Long EXISTS_USER_ID = 1L;
     private static final Long EXISTS_REPLY_ID = 5L;
+    private static final Long NOT_EXISTS_REPLY_ID = 100L;
     private static final Long EXISTS_REVIEW_ID = 6L;
     private static final Long NEW_REPLY_ID = 0L;
 
@@ -277,15 +277,15 @@ public class ReplyControllerTest {
                 void setUp() {
                     given(authenticationService.getRoles(EXISTS_USER_ID)).willReturn(List.of(new Role(1L, EXISTS_USER_ID, RoleType.USER)));
                     given(authenticationService.parseToken(EXISTS_TOKEN)).willReturn(EXISTS_USER_ID);
-                    given(replyService.deleteReply(EXISTS_REPLY_ID, EXISTS_USER_ID)).willThrow(
-                            new CustomException("[ERROR] Reply not found(Id: " + EXISTS_REPLY_ID + ")", HttpStatus.NOT_FOUND)
+                    given(replyService.deleteReply(NOT_EXISTS_REPLY_ID, EXISTS_USER_ID)).willThrow(
+                            new ReplyNotFoundException(NOT_EXISTS_REPLY_ID)
                     );
                 }
 
                 @Test
-                @DisplayName("204를 응답한다.")
+                @DisplayName("404를 응답한다.")
                 void It_responds_204() throws Exception {
-                    mvc.perform(delete("/replies/" + EXISTS_REPLY_ID)
+                    mvc.perform(delete("/replies/" + NOT_EXISTS_REPLY_ID)
                                     .header("Authorization", "Bearer " + EXISTS_TOKEN)
                             )
                             .andExpect(status().isNotFound());

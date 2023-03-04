@@ -295,7 +295,6 @@ class UserServiceTest {
             @DisplayName("에러를 발생시킨다.")
             void It_returns_empty_list() {
                 assertThatThrownBy(() -> userService.updateUser(NOT_EXISTS_ID, userUpdateRequest, DIFF_CURRENT_USER_ID))
-                        .hasMessageContaining("[ERROR] No authorization for user")
                         .isInstanceOf(CustomException.class);
             }
         }
@@ -336,7 +335,6 @@ class UserServiceTest {
                 @DisplayName("에러를 반환한다.")
                 void It_returns_user() {
                     assertThatThrownBy(() -> userService.deleteUser(EXISTS_ID, DIFF_CURRENT_USER_ID))
-                            .hasMessageContaining("[ERROR] No authorization for user")
                             .isInstanceOf(CustomException.class);
 
                 }
@@ -360,7 +358,6 @@ class UserServiceTest {
                 @DisplayName("에러를 반환한다.")
                 void It_throws_user_not_found_exception() {
                     assertThatThrownBy(() -> userService.deleteUser(NOT_EXISTS_ID, NOT_EXISTS_ID))
-                            .hasMessageContaining("[ERROR] User not found(Id: ")
                             .isInstanceOf(CustomException.class);
                 }
             }
@@ -372,7 +369,6 @@ class UserServiceTest {
                 @DisplayName("에러를 반환한다.")
                 void It_returns_user() {
                     assertThatThrownBy(() -> userService.deleteUser(EXISTS_ID, DIFF_CURRENT_USER_ID))
-                            .hasMessageContaining("[ERROR] No authorization for user")
                             .isInstanceOf(CustomException.class);
 
                 }
